@@ -4,25 +4,6 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:html_to_image/html_to_image.dart';
 
-const htmlContent = '''
-<Html>
-<Head>
-<title>
-Example of Paragraph tag
-</title>
-</Head>
-<Body>
-<p> <!-- It is a Paragraph tag for creating the paragraph -->
-<b> HTML </b> stands for <i> <u> Hyper Text Markup Language. </u> </i> It is used to create a web pages and applications. This language
-is easily understandable by the user and also be modifiable. It is actually a Markup language, hence it provides a flexible way for designing the
-web pages along with the text.
-</p>
-यो नेपाली अक्षर हो
-</p>
-</Body>
-</Html>
-''';
-
 void main() {
   runApp(const MyApp());
 }
@@ -35,20 +16,47 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  late final TextEditingController _controller;
   final _htmlToImagePlugin = HtmlToImage();
   Uint8List? img;
 
+  static const _dummyContent = '''
+  <html>
+  <head>
+  <title>
+  Example of Paragraph tag
+  </title>
+  </head>
+  <body>
+  <p> <!-- It is a Paragraph tag for creating the paragraph -->
+  <b> HTML </b> stands for <i> <u> Hyper Text Markup Language. </u> </i> It is used to create a web pages and applications. This language
+  is easily understandable by the user and also be modifiable. It is actually a Markup language, hence it provides a flexible way for designing the
+  web pages along with the text.
+  <img src="https://picsum.photos/200/300" />
+  <br />
+  </body>
+  </html>
+  ''';
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: _dummyContent);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   Future<void> contentToImage() async {
-    try {
-      final image = await _htmlToImagePlugin.convertToImage(
-        content: htmlContent,
-      );
-      setState(() {
-        img = image;
-      });
-    } catch (e) {
-      print(e);
-    }
+    final image = await _htmlToImagePlugin.tryConvertToImage(
+      content: _controller.text,
+    );
+    setState(() {
+      img = image;
+    });
   }
 
   @override
@@ -56,16 +64,32 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('HTML to Image Converter'),
         ),
-        body: Center(
-          child: img == null ? const Text('Nothing here') : Image.memory(img!),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: contentToImage,
-          tooltip: 'COnvert',
-          child: const Icon(Icons.add),
-        ),
+        body: img == null
+            ? Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _controller,
+                  maxLines: 100,
+                ),
+              )
+            : Image.memory(img!),
+        floatingActionButton: img == null
+            ? FloatingActionButton(
+                onPressed: contentToImage,
+                tooltip: 'Convert to Image',
+                child: const Icon(Icons.play_arrow),
+              )
+            : FloatingActionButton(
+                onPressed: () {
+                  setState(() {
+                    img = null;
+                  });
+                },
+                tooltip: 'Clear',
+                child: const Icon(Icons.clear),
+              ),
       ),
     );
   }
