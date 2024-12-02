@@ -10,30 +10,19 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
   final methodChannel = const MethodChannel('html_to_image');
 
   @override
-  Future<String?> getPlatformVersion() async {
-    final version =
-        await methodChannel.invokeMethod<String>('getPlatformVersion');
-    return version;
-  }
-
-  @override
   Future<Uint8List> convertToImage({
     required String content,
     double duration = 2000,
-    String? executablePath,
     int scale = 3,
-    Map<String, dynamic> args = const {},
+    int? width,
   }) async {
     final Map<String, dynamic> arguments = {
       'content': content,
       'duration': duration,
       'scale': scale,
+      'width': width,
     };
 
-    ///
-    if (args.isNotEmpty) {
-      arguments.addAll(args);
-    }
     Uint8List results = Uint8List.fromList([]);
 
     try {

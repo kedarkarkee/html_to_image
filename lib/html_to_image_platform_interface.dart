@@ -25,16 +25,11 @@ abstract class HtmlToImagePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> getPlatformVersion() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
-  }
-
   Future<Uint8List> convertToImage({
     required String content,
     double duration = 2000,
-    String? executablePath,
     int scale = 3,
-    Map<String, dynamic> args = const {},
+    int? width,
   }) {
     throw UnimplementedError('contentToImage() has not been implemented.');
   }

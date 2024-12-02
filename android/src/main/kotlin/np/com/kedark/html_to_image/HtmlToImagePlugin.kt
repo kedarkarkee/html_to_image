@@ -47,11 +47,12 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val method = call.method
         val arguments = call.arguments as Map<*, *>
         val content = arguments["content"] as String
+        val width = arguments["width"] as Int?
         val tag = "html_to_image"
         if (method == "convertToImage") {
             Log.w(tag, "\n activity $activity")
             webView = WebView(this.context)
-            val dwidth = this.activity.window.windowManager.defaultDisplay.width
+            val dwidth = width ?: this.activity.window.windowManager.defaultDisplay.width
             val dheight = this.activity.window.windowManager.defaultDisplay.height
             webView.layout(0, 0, dwidth, dheight)
             webView.loadDataWithBaseURL(null, content, "text/HTML", "UTF-8", null)
