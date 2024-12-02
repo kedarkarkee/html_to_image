@@ -5,9 +5,10 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import android.util.Size
 import android.view.View
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -48,12 +49,11 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val arguments = call.arguments as Map<*, *>
         val content = arguments["content"] as String
         val width = arguments["width"] as Int?
-        val tag = "html_to_image"
         if (method == "convertToImage") {
-            Log.w(tag, "\n activity $activity")
             webView = WebView(this.context)
-            val dwidth = width ?: this.activity.window.windowManager.defaultDisplay.width
-            val dheight = this.activity.window.windowManager.defaultDisplay.height
+            val displaySize = getDisplaySize()
+            val dwidth = width ?: displaySize.width
+            val dheight = displaySize.height
             webView.layout(0, 0, dwidth, dheight)
             webView.loadDataWithBaseURL(null, content, "text/HTML", "UTF-8", null)
             webView.setInitialScale(1)
@@ -70,10 +70,9 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     scope.launch {
                         // Perform WebView-to-image conversion on a background thread
                         val duration =
-                            (dheight / 1000).toInt() * 200 /// delay 200 ms for every height 2000
+                            (dheight / 1000) * 200 /// delay 200 ms for every height 2000
 
                         Handler(Looper.getMainLooper()).postDelayed({
-                            Log.w(tag, "\nOS Version: ${android.os.Build.VERSION.SDK_INT}")
 
                             webView.evaluateJavascript("(function() { return [document.body.offsetWidth, document.body.offsetHeight]; })();") {
                                 val xy = JSONArray(it)
@@ -82,7 +81,6 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                                 if (offsetHeight.toInt() < 1000) {
                                     offsetHeight = (xy[1].toString().toInt() + 20).toString()
                                 }
-                                Log.w(tag, "\n width height $it ${it is String} ${xy[0]} ${xy[1]}")
                                 val data = webView.toBitmap(
                                     offsetWidth.toDouble(),
                                     offsetHeight.toDouble()
@@ -101,8 +99,17 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
     }
 
+    @Suppress("DEPRECATION")
+    private fun getDisplaySize(): Size {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val bounds = this.activity.window.windowManager.currentWindowMetrics.bounds
+            return Size(bounds.width(), bounds.height())
+        }
+        val defaultDisplay = this.activity.window.windowManager.defaultDisplay
+        return Size(defaultDisplay.width, defaultDisplay.height)
+    }
+
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        print("onAttachedToActivity")
         activity = binding.activity
         webView = WebView(activity.applicationContext)
         webView.minimumHeight = 1
@@ -129,8 +136,6 @@ fun WebView.toBitmap(offsetWidth: Double, offsetHeight: Double): Bitmap? {
     if (offsetHeight > 0 && offsetWidth > 0) {
         val width = (offsetWidth * this.scale).absoluteValue.toInt()
         val height = (offsetHeight * this.scale).absoluteValue.toInt()
-        print("\nwidth $width")
-        print("\nheight $height")
         this.measure(
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)

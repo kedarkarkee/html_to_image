@@ -16,4 +16,22 @@ class HtmlToImage {
       width: width,
     );
   }
+
+  Future<Uint8List?> tryConvertToImage({
+    required String content,
+    double duration = 2000,
+    int scale = 3,
+    int? width,
+  }) async {
+    try {
+      return await HtmlToImagePlatform.instance.convertToImage(
+        content: content,
+        duration: duration,
+        scale: scale,
+        width: width,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
 }
