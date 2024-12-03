@@ -18,7 +18,7 @@ final image = Image.memory(imageBytes);
 ```
 
 ## Convert to Image from HTML asset
-- ```convertToImageFromAsset(String asset, Duration delay,int? width)```
+- ```Future<Uint8List> convertToImageFromAsset(String asset, Duration delay,int? width)```
 ```dart
 final imageBytes = await HtmlToImage.convertToImageFromAsset(
   asset: 'assets/example.html',
