@@ -1,3 +1,5 @@
-## 0.0.1
+## 1.0.0
 
-* TODO: Describe initial release.
+* Initial release
+ - Convert HTML content to image
+ - Convert HTML asset to image

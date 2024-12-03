@@ -1,15 +1,30 @@
 # html_to_image
 
-A new Flutter plugin project.
+Flutter plugin to convert HTML file to image on Android and iOS using WebView.
 
-## Getting Started
+# Requirements
+- Android: Minimum SDK Version 21
+- iOS: Minimum Deployment Target 11.0
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+# Usage
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Convert to Image from HTML content
+- ```Future<Uint8List> convertToImage(String content, Duration delay,int? width)```
+```dart
+final imageBytes = await HtmlToImage.convertToImage(
+  content: content,
+);
+final image = Image.memory(imageBytes);
+```
 
+## Convert to Image from HTML asset
+- ```convertToImageFromAsset(String asset, Duration delay,int? width)```
+```dart
+final imageBytes = await HtmlToImage.convertToImageFromAsset(
+  asset: 'assets/example.html',
+);
+final image = Image.memory(imageBytes);
+```
+
+- Default delay is 200 milliseconds
+- Default width is device width

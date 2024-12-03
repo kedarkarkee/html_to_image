@@ -1,11 +1,11 @@
 name: html_to_image
-description: "A new Flutter plugin project."
-version: 0.0.1
-homepage:
+description: "Plugin to convert html to image"
+version: 1.0.0
+homepage: https://pub.dev/documentation/html_to_image/latest/
 
 environment:
   sdk: ^3.5.4
-  flutter: '>=3.3.0'
+  flutter: ">=3.3.0"
 
 dependencies:
   flutter:
