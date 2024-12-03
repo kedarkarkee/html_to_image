@@ -17,7 +17,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final TextEditingController _controller;
-  final _htmlToImagePlugin = HtmlToImage();
   Uint8List? img;
 
   static const _dummyContent = '''
@@ -50,9 +49,18 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
   }
 
-  Future<void> contentToImage() async {
-    final image = await _htmlToImagePlugin.tryConvertToImage(
+  Future<void> convertToImage() async {
+    final image = await HtmlToImage.tryConvertToImage(
       content: _controller.text,
+    );
+    setState(() {
+      img = image;
+    });
+  }
+
+  Future<void> convertToImageFromAsset() async {
+    final image = await HtmlToImage.convertToImageFromAsset(
+      asset: 'assets/example.html',
     );
     setState(() {
       img = image;
@@ -69,19 +77,33 @@ class _MyAppState extends State<MyApp> {
         body: img == null
             ? Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: _controller,
-                  maxLines: 100,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        maxLines: 100,
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: convertToImage,
+                          child: const Text('Convert to Image'),
+                        ),
+                        ElevatedButton(
+                          onPressed: convertToImageFromAsset,
+                          child: const Text('Convert from Asset'),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               )
             : Image.memory(img!),
-        floatingActionButton: img == null
+        floatingActionButton: img != null
             ? FloatingActionButton(
-                onPressed: contentToImage,
-                tooltip: 'Convert to Image',
-                child: const Icon(Icons.play_arrow),
-              )
-            : FloatingActionButton(
                 onPressed: () {
                   setState(() {
                     img = null;
@@ -89,7 +111,8 @@ class _MyAppState extends State<MyApp> {
                 },
                 tooltip: 'Clear',
                 child: const Icon(Icons.clear),
-              ),
+              )
+            : null,
       ),
     );
   }

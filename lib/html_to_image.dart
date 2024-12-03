@@ -1,9 +1,24 @@
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
+
 import 'html_to_image_platform_interface.dart';
 
 class HtmlToImage {
-  Future<Uint8List> convertToImage({
+  static Future<Uint8List> convertToImageFromAsset({
+    required String asset,
+    Duration delay = const Duration(milliseconds: 200),
+    int? width,
+  }) async {
+    final content = await rootBundle.loadString(asset);
+    return HtmlToImagePlatform.instance.convertToImage(
+      content: content,
+      delay: delay,
+      width: width,
+    );
+  }
+
+  static Future<Uint8List> convertToImage({
     required String content,
     Duration delay = const Duration(milliseconds: 200),
     int? width,
@@ -15,7 +30,7 @@ class HtmlToImage {
     );
   }
 
-  Future<Uint8List?> tryConvertToImage({
+  static Future<Uint8List?> tryConvertToImage({
     required String content,
     Duration delay = const Duration(milliseconds: 200),
     int? width,
