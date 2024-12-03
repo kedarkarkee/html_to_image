@@ -12,9 +12,7 @@ class MockHtmlToImagePlatform
   @override
   Future<Uint8List> convertToImage({
     required String content,
-    double duration = 2000,
-    String? executablePath,
-    int scale = 3,
+    Duration delay = const Duration(milliseconds: 200),
     int? width,
   }) {
     throw UnimplementedError();

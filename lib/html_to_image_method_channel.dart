@@ -12,25 +12,20 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
   @override
   Future<Uint8List> convertToImage({
     required String content,
-    double duration = 2000,
-    int scale = 3,
+    Duration delay = const Duration(milliseconds: 200),
     int? width,
   }) async {
     final Map<String, dynamic> arguments = {
       'content': content,
-      'duration': duration,
-      'scale': scale,
+      'delay': delay.inMilliseconds,
       'width': width,
     };
-
-    Uint8List results = Uint8List.fromList([]);
-
     try {
-      /// mobile method
-      results = await (methodChannel.invokeMethod('convertToImage', arguments));
+      final result = await (methodChannel.invokeMethod(
+          'convertToImage', arguments)) as Uint8List;
+      return result;
     } on Exception catch (e) {
       throw Exception("Error: $e");
     }
-    return results;
   }
 }

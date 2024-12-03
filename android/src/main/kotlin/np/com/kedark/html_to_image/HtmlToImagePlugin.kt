@@ -48,6 +48,7 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val method = call.method
         val arguments = call.arguments as Map<*, *>
         val content = arguments["content"] as String
+        val delay = arguments["delay"] as Int? ?: 200
         val width = arguments["width"] as Int?
         if (method == "convertToImage") {
             webView = WebView(this.context)
@@ -70,7 +71,7 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     scope.launch {
                         // Perform WebView-to-image conversion on a background thread
                         val duration =
-                            (dheight / 1000) * 200 /// delay 200 ms for every height 2000
+                            (dheight / 1000) * delay // Delay for every 1000 px height
 
                         Handler(Looper.getMainLooper()).postDelayed({
 

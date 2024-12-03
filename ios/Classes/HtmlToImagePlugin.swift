@@ -17,7 +17,7 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
             return
         }
         let content = arguments!["content"] as? String
-        var duration = arguments!["duration"] as? Double ?? 2000.0
+        let delay = arguments!["delay"] as? Double ?? 200.0
         let width = arguments!["width"] as? Double ?? UIScreen.main.bounds.size.width
         switch call.method {
         case "convertToImage":
@@ -27,8 +27,9 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
             self.webView.loadHTMLString(content!, baseURL: Bundle.main.resourceURL)
             var bytes = FlutterStandardTypedData.init(bytes: Data() )
             urlObservation = webView.observe(\.isLoading, changeHandler: { (webView, change) in
-                DispatchQueue.main.asyncAfter(deadline: .now() + (duration/10000) ) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + (delay/1000) ) {
                     if #available(iOS 11.0, *) {
+                        self.webView.scrollView.contentInsetAdjustmentBehavior = UIScrollView.ContentInsetAdjustmentBehavior.never
                         let configuration = WKSnapshotConfiguration()
                         var size = self.webView.scrollView.contentSize
                         size.height = size.height + 50
