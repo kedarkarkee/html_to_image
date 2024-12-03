@@ -1,7 +1,16 @@
 name: html_to_image
 description: "Plugin to convert html to image"
 version: 1.0.0
-homepage: https://pub.dev/documentation/html_to_image/latest/
+homepage: https://github.com/kedarkarkee/html_to_image
+repository: https://github.com/kedarkarkee/html_to_image
+issue_tracker: https://github.com/kedarkarkee/html_to_image/issues
+documentation: https://pub.dev/documentation/html_to_image/latest/
+
+publish_to: "none"
+
+platforms:
+  android:
+  ios:
 
 environment:
   sdk: ^3.5.4
@@ -39,6 +48,17 @@ flutter:
         pluginClass: HtmlToImagePlugin
       ios:
         pluginClass: HtmlToImagePlugin
+
+screenshots:
+  - description: "Shows the html input field and convert buttons"
+    path: screenshots/home.png
+  - description: "Shows the converted image from html"
+    path: screenshots/converted.png
+
+topics:
+  - html
+  - html-to-image
+  - html-print
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
