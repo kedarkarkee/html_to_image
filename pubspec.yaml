@@ -1,6 +1,6 @@
 name: html_to_image
 description: "Flutter plugin to convert HTML file to image on Android and iOS using WebView on Android and WkWebView on iOS."
-version: 1.0.0
+version: 1.0.0+1
 homepage: https://github.com/kedarkarkee/html_to_image
 repository: https://github.com/kedarkarkee/html_to_image.git
 issue_tracker: https://github.com/kedarkarkee/html_to_image/issues
