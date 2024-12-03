@@ -6,8 +6,6 @@ repository: https://github.com/kedarkarkee/html_to_image
 issue_tracker: https://github.com/kedarkarkee/html_to_image/issues
 documentation: https://pub.dev/documentation/html_to_image/latest/
 
-publish_to: "none"
-
 platforms:
   android:
   ios:
