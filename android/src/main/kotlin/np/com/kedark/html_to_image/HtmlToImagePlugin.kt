@@ -12,6 +12,7 @@ import android.util.Size
 import android.view.View
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebSettings
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -55,13 +56,18 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             val displaySize = getDisplaySize()
             val dwidth = width ?: displaySize.width
             val dheight = displaySize.height
-            webView.layout(0, 0, dwidth, dheight)
+            // Use a larger width for layout to prevent clipping
+            webView.layout(0, 0, dwidth * 2, dheight)
             webView.loadDataWithBaseURL(null, content, "text/HTML", "UTF-8", null)
             webView.setInitialScale(1)
             webView.settings.javaScriptEnabled = true
             webView.settings.useWideViewPort = true
             webView.settings.javaScriptCanOpenWindowsAutomatically = true
             webView.settings.loadWithOverviewMode = true
+            webView.settings.setSupportZoom(true)
+            webView.settings.builtInZoomControls = true
+            webView.settings.displayZoomControls = false
+            webView.settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
             WebView.enableSlowWholeDocumentDraw()
             webView.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView, url: String) {
@@ -75,16 +81,37 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                         Handler(Looper.getMainLooper()).postDelayed({
 
-                            webView.evaluateJavascript("(function() { return [document.body.offsetWidth, document.body.offsetHeight]; })();") {
+                            webView.evaluateJavascript("""
+                            (function() {
+                                var body = document.body;
+                                var html = document.documentElement;
+
+                                // Get the total width including any overflow
+                                var totalWidth = Math.max(
+                                    body.scrollWidth, html.scrollWidth,
+                                    body.offsetWidth, html.offsetWidth,
+                                    body.clientWidth, html.clientWidth
+                                );
+
+                                // Get the total height
+                                var totalHeight = Math.max(
+                                    body.scrollHeight, html.scrollHeight,
+                                    body.offsetHeight, html.offsetHeight,
+                                    body.clientHeight, html.clientHeight
+                                );
+
+                                return [totalWidth, totalHeight];
+                            })();
+                            """) {
                                 val xy = JSONArray(it)
-                                val offsetWidth = xy[0].toString()
-                                var offsetHeight = xy[1].toString()
-                                if (offsetHeight.toInt() < 1000) {
-                                    offsetHeight = (xy[1].toString().toInt() + 20).toString()
+                                val contentWidth = xy[0].toString().toInt()
+                                var contentHeight = xy[1].toString().toInt()
+                                if (contentHeight < 1000) {
+                                    contentHeight += 20
                                 }
                                 val data = webView.toBitmap(
-                                    offsetWidth.toDouble(),
-                                    offsetHeight.toDouble()
+                                    contentWidth.toDouble(),
+                                    contentHeight.toDouble()
                                 )
                                 if (data != null) {
                                     val bytes = data.toByteArray()
@@ -135,7 +162,8 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
 fun WebView.toBitmap(offsetWidth: Double, offsetHeight: Double): Bitmap? {
     if (offsetHeight > 0 && offsetWidth > 0) {
-        val width = (offsetWidth * this.scale).absoluteValue.toInt()
+        // Add extra padding to width to prevent clipping
+        val width = ((offsetWidth + 20) * this.scale).absoluteValue.toInt()
         val height = (offsetHeight * this.scale).absoluteValue.toInt()
         this.measure(
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
@@ -155,4 +183,3 @@ fun Bitmap.toByteArray(): ByteArray {
         return toByteArray()
     }
 }
-

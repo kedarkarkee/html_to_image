@@ -70,49 +70,54 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('HTML to Image Converter'),
-        ),
-        body: img == null
-            ? Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _controller,
-                        maxLines: 100,
+      home: SafeArea(
+        top: false,
+        left: false,
+        right: false,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('HTML to Image Converter'),
+          ),
+          body: img == null
+              ? Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _controller,
+                          maxLines: 100,
+                        ),
                       ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: convertToImage,
-                          child: const Text('Convert to Image'),
-                        ),
-                        ElevatedButton(
-                          onPressed: convertToImageFromAsset,
-                          child: const Text('Convert from Asset'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              )
-            : Image.memory(img!),
-        floatingActionButton: img != null
-            ? FloatingActionButton(
-                onPressed: () {
-                  setState(() {
-                    img = null;
-                  });
-                },
-                tooltip: 'Clear',
-                child: const Icon(Icons.clear),
-              )
-            : null,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: convertToImage,
+                            child: const Text('Convert to Image'),
+                          ),
+                          ElevatedButton(
+                            onPressed: convertToImageFromAsset,
+                            child: const Text('Convert from Asset'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
+              : Image.memory(img!),
+          floatingActionButton: img != null
+              ? FloatingActionButton(
+                  onPressed: () {
+                    setState(() {
+                      img = null;
+                    });
+                  },
+                  tooltip: 'Clear',
+                  child: const Icon(Icons.clear),
+                )
+              : null,
+        ),
       ),
     );
   }
