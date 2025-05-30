@@ -14,6 +14,8 @@ class HtmlToImage {
   /// This is useful when the content has animations, images or other dynamic content.
   ///
   /// [width] Required width of the image.
+  ///
+  /// [margins] Represents the margins for an output image.
   static Future<Uint8List> convertToImageFromAsset({
     required String asset,
     int? width,
@@ -37,6 +39,8 @@ class HtmlToImage {
   /// This is useful when the content has animations, images or other dynamic content.
   ///
   /// [width] Required width of the image.
+  ///
+  /// [margins] Represents the margins for an output image.
   static Future<Uint8List> convertToImage({
     required String content,
     int? width,
@@ -59,6 +63,8 @@ class HtmlToImage {
   /// This is useful when the content has animations, images or other dynamic content.
   ///
   /// [width] Required width of the image.
+  ///
+  /// [margins] Represents the margins for an output image.
   static Future<Uint8List?> tryConvertToImage({
     required String content,
     int? width,
