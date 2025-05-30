@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:html_to_image/config.dart';
 
 import 'html_to_image_platform_interface.dart';
 
@@ -12,13 +13,20 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
   @override
   Future<Uint8List> convertToImage({
     required String content,
-    Duration delay = const Duration(milliseconds: 200),
     int? width,
+    Duration delay = const Duration(milliseconds: 200),
+    ImageMargins margins = const ImageMargins(),
   }) async {
     final Map<String, dynamic> arguments = {
       'content': content,
       'delay': delay.inMilliseconds,
       'width': width,
+      'margins': [
+        margins.left,
+        margins.top,
+        margins.right,
+        margins.bottom,
+      ],
     };
     try {
       final result = await (methodChannel.invokeMethod(

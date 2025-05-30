@@ -1,6 +1,9 @@
 import 'package:flutter/services.dart';
+import 'package:html_to_image/config.dart';
 
 import 'html_to_image_platform_interface.dart';
+
+export 'config.dart';
 
 class HtmlToImage {
   /// Converts the given HTML asset file to an image.
@@ -11,16 +14,20 @@ class HtmlToImage {
   /// This is useful when the content has animations, images or other dynamic content.
   ///
   /// [width] Required width of the image.
+  ///
+  /// [margins] Represents the margins for an output image.
   static Future<Uint8List> convertToImageFromAsset({
     required String asset,
-    Duration delay = const Duration(milliseconds: 200),
     int? width,
+    Duration delay = const Duration(milliseconds: 200),
+    ImageMargins margins = const ImageMargins(),
   }) async {
     final content = await rootBundle.loadString(asset);
     return HtmlToImagePlatform.instance.convertToImage(
       content: content,
-      delay: delay,
       width: width,
+      delay: delay,
+      margins: margins,
     );
   }
 
@@ -32,15 +39,19 @@ class HtmlToImage {
   /// This is useful when the content has animations, images or other dynamic content.
   ///
   /// [width] Required width of the image.
+  ///
+  /// [margins] Represents the margins for an output image.
   static Future<Uint8List> convertToImage({
     required String content,
-    Duration delay = const Duration(milliseconds: 200),
     int? width,
+    Duration delay = const Duration(milliseconds: 200),
+    ImageMargins margins = const ImageMargins(),
   }) {
     return HtmlToImagePlatform.instance.convertToImage(
       content: content,
       delay: delay,
       width: width,
+      margins: margins,
     );
   }
 
@@ -52,16 +63,20 @@ class HtmlToImage {
   /// This is useful when the content has animations, images or other dynamic content.
   ///
   /// [width] Required width of the image.
+  ///
+  /// [margins] Represents the margins for an output image.
   static Future<Uint8List?> tryConvertToImage({
     required String content,
-    Duration delay = const Duration(milliseconds: 200),
     int? width,
+    Duration delay = const Duration(milliseconds: 200),
+    ImageMargins margins = const ImageMargins(),
   }) async {
     try {
       return await HtmlToImagePlatform.instance.convertToImage(
         content: content,
         delay: delay,
         width: width,
+        margins: margins,
       );
     } catch (_) {
       return null;
