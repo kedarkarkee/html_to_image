@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -51,6 +52,15 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val content = arguments["content"] as String
         val delay = arguments["delay"] as Int? ?: 200
         val width = arguments["width"] as Int?
+
+        // Get margin parameters with default values
+        val margins = arguments["margins"] as List<*>
+        val marginLeft = margins[0] as Int? ?: 0
+        val marginTop = margins[1] as Int? ?: 0
+        val marginRight = margins[2] as Int? ?: 0
+        val marginBottom = margins[3] as Int? ?: 0
+
+
         if (method == "convertToImage") {
             webView = WebView(this.context)
             val displaySize = getDisplaySize()
@@ -109,13 +119,30 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                                 if (contentHeight < 1000) {
                                     contentHeight += 20
                                 }
-                                val data = webView.toBitmap(
+
+                                // Creating the bitmap without margins
+                                val originalBitmap = webView.toBitmap(
                                     contentWidth.toDouble(),
                                     contentHeight.toDouble()
                                 )
-                                if (data != null) {
-                                    val bytes = data.toByteArray()
+
+                                if (originalBitmap != null) {
+                                    // Apply margins to the bitmap if any margin is non-zero
+                                    val finalBitmap = if (marginLeft > 0 || marginTop > 0 || marginRight > 0 || marginBottom > 0) {
+                                        originalBitmap.addMargins(marginLeft, marginTop, marginRight, marginBottom)
+                                    } else {
+                                        originalBitmap
+                                    }
+                                    val bytes = finalBitmap.toByteArray()
+
+                                    // Recycle bitmaps to free memory if they're different
+                                    if (finalBitmap !== originalBitmap) {
+                                        originalBitmap.recycle()
+                                    }
+
                                     result.success(bytes)
+                                }  else {
+                                    result.error("CONVERSION_FAILED", "Failed to convert HTML to image", null)
                                 }
                             }
                         }, duration.toLong())
@@ -182,4 +209,18 @@ fun Bitmap.toByteArray(): ByteArray {
         compress(Bitmap.CompressFormat.PNG, 100, this)
         return toByteArray()
     }
+}
+
+fun Bitmap.addMargins(leftMargin: Int, topMargin: Int, rightMargin: Int, bottomMargin: Int): Bitmap {
+    // Create a new bitmap with the margins
+    val newWidth = width + leftMargin + rightMargin
+    val newHeight = height + topMargin + bottomMargin
+    val newBitmap = Bitmap.createBitmap(newWidth, newHeight, config)
+
+    // Draw the original bitmap onto the new one with margins
+    val canvas = Canvas(newBitmap)
+    canvas.drawColor(Color.WHITE) // Fill with white background
+    canvas.drawBitmap(this, leftMargin.toFloat(), topMargin.toFloat(), null)
+
+    return newBitmap
 }
