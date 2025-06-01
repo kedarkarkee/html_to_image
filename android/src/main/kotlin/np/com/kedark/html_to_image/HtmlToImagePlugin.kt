@@ -70,14 +70,7 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             webView.layout(0, 0, dwidth * 2, dheight)
             webView.loadDataWithBaseURL(null, content, "text/HTML", "UTF-8", null)
             webView.setInitialScale(1)
-            webView.settings.javaScriptEnabled = true
-            webView.settings.useWideViewPort = true
-            webView.settings.javaScriptCanOpenWindowsAutomatically = true
-            webView.settings.loadWithOverviewMode = true
-            webView.settings.setSupportZoom(true)
-            webView.settings.builtInZoomControls = true
-            webView.settings.displayZoomControls = false
-            webView.settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
+            configureWebViewSettings(webView)
             WebView.enableSlowWholeDocumentDraw()
             webView.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView, url: String) {
@@ -86,12 +79,71 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     val scope = CoroutineScope(Dispatchers.IO)
                     scope.launch {
                         // Perform WebView-to-image conversion on a background thread
-                        val duration =
-                            (dheight / 1000) * delay // Delay for every 1000 px height
+                        val duration = (dheight / 1000) * delay // Delay for every 1000 px height
 
                         Handler(Looper.getMainLooper()).postDelayed({
 
-                            webView.evaluateJavascript("""
+                            getMaxContentDimensions(webView) { contentWidth, cHeight ->
+                                var contentHeight = cHeight
+                                if (contentHeight < 1000) {
+                                    contentHeight += 20
+                                }
+
+                                // Creating the bitmap without margins
+                                val originalBitmap = webView.toBitmap(
+                                    contentWidth.toDouble(), contentHeight.toDouble()
+                                )
+
+                                if (originalBitmap != null) {
+                                    // Apply margins to the bitmap if any margin is non-zero
+                                    val finalBitmap =
+                                        if (marginLeft > 0 || marginTop > 0 || marginRight > 0 || marginBottom > 0) {
+                                            originalBitmap.addMargins(
+                                                marginLeft, marginTop, marginRight, marginBottom
+                                            )
+                                        } else {
+                                            originalBitmap
+                                        }
+                                    val bytes = finalBitmap.toByteArray()
+
+                                    // Recycle bitmaps to free memory if they're different
+                                    if (finalBitmap !== originalBitmap) {
+                                        originalBitmap.recycle()
+                                    }
+
+                                    result.success(bytes)
+                                } else {
+                                    result.error(
+                                        "CONVERSION_FAILED", "Failed to convert HTML to image", null
+                                    )
+                                }
+                            }
+                        }, duration.toLong())
+                    }
+                }
+            }
+        } else {
+            return result.notImplemented()
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun configureWebViewSettings(webView: WebView) {
+        webView.settings.apply {
+            javaScriptEnabled = true
+            useWideViewPort = true
+            javaScriptCanOpenWindowsAutomatically = true
+            loadWithOverviewMode = true
+            setSupportZoom(true)
+            builtInZoomControls = true
+            displayZoomControls = false
+            layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
+        }
+    }
+
+    private fun getMaxContentDimensions(webView: WebView, callback: (Int, Int) -> Unit) {
+        webView.evaluateJavascript(
+            """
                             (function() {
                                 var body = document.body;
                                 var html = document.documentElement;
@@ -112,45 +164,12 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
                                 return [totalWidth, totalHeight];
                             })();
-                            """) {
-                                val xy = JSONArray(it)
-                                val contentWidth = xy[0].toString().toInt()
-                                var contentHeight = xy[1].toString().toInt()
-                                if (contentHeight < 1000) {
-                                    contentHeight += 20
-                                }
-
-                                // Creating the bitmap without margins
-                                val originalBitmap = webView.toBitmap(
-                                    contentWidth.toDouble(),
-                                    contentHeight.toDouble()
-                                )
-
-                                if (originalBitmap != null) {
-                                    // Apply margins to the bitmap if any margin is non-zero
-                                    val finalBitmap = if (marginLeft > 0 || marginTop > 0 || marginRight > 0 || marginBottom > 0) {
-                                        originalBitmap.addMargins(marginLeft, marginTop, marginRight, marginBottom)
-                                    } else {
-                                        originalBitmap
-                                    }
-                                    val bytes = finalBitmap.toByteArray()
-
-                                    // Recycle bitmaps to free memory if they're different
-                                    if (finalBitmap !== originalBitmap) {
-                                        originalBitmap.recycle()
-                                    }
-
-                                    result.success(bytes)
-                                }  else {
-                                    result.error("CONVERSION_FAILED", "Failed to convert HTML to image", null)
-                                }
-                            }
-                        }, duration.toLong())
-                    }
-                }
-            }
-        } else {
-            return result.notImplemented()
+                            """
+        ) {
+            val xy = JSONArray(it)
+            val contentWidth = xy[0].toString().toInt()
+            val contentHeight = xy[1].toString().toInt()
+            callback(contentWidth, contentHeight)
         }
     }
 
@@ -211,7 +230,9 @@ fun Bitmap.toByteArray(): ByteArray {
     }
 }
 
-fun Bitmap.addMargins(leftMargin: Int, topMargin: Int, rightMargin: Int, bottomMargin: Int): Bitmap {
+fun Bitmap.addMargins(
+    leftMargin: Int, topMargin: Int, rightMargin: Int, bottomMargin: Int
+): Bitmap {
     // Create a new bitmap with the margins
     val newWidth = width + leftMargin + rightMargin
     val newHeight = height + topMargin + bottomMargin
