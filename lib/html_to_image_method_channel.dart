@@ -16,7 +16,7 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
     int? width,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
-    bool useExactDimentions = false,
+    bool useExactDimensions = false,
     int initialScale = 1,
   }) async {
     final Map<String, dynamic> arguments = {
@@ -29,7 +29,7 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
         margins.right,
         margins.bottom,
       ],
-      'use_exact_dimensions': useExactDimentions,
+      'use_exact_dimensions': useExactDimensions,
       'initial_scale': initialScale,
     };
     try {
