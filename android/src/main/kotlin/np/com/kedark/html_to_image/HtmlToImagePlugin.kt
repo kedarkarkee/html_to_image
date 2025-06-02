@@ -54,12 +54,10 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val width = arguments["width"] as Int?
 
         // Get margin parameters with default values
-        val margins = arguments["margins"] as List<*>
-        val marginLeft = margins[0] as Int? ?: 0
-        val marginTop = margins[1] as Int? ?: 0
-        val marginRight = margins[2] as Int? ?: 0
-        val marginBottom = margins[3] as Int? ?: 0
+        val margins = (arguments["margins"] as List<*>).map { it as Int? ?: 0 }
 
+        val useExactDimensions = arguments["use_exact_dimensions"] as Boolean? ?: false
+        val initialScale = arguments["initial_scale"] as Int? ?: 1
 
         if (method == "convertToImage") {
             webView = WebView(this.context)
@@ -69,7 +67,7 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             // Use a larger width for layout to prevent clipping
             webView.layout(0, 0, dwidth * 2, dheight)
             webView.loadDataWithBaseURL(null, content, "text/HTML", "UTF-8", null)
-            webView.setInitialScale(1)
+            webView.setInitialScale(initialScale)
             configureWebViewSettings(webView)
             WebView.enableSlowWholeDocumentDraw()
             webView.webViewClient = object : WebViewClient() {
@@ -82,35 +80,13 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                         val duration = (dheight / 1000) * delay // Delay for every 1000 px height
 
                         Handler(Looper.getMainLooper()).postDelayed({
-
-                            getMaxContentDimensions(webView) { contentWidth, cHeight ->
-                                var contentHeight = cHeight
-                                if (contentHeight < 1000) {
-                                    contentHeight += 20
-                                }
-
-                                // Creating the bitmap without margins
-                                val originalBitmap = webView.toBitmap(
-                                    contentWidth.toDouble(), contentHeight.toDouble()
-                                )
-
-                                if (originalBitmap != null) {
-                                    // Apply margins to the bitmap if any margin is non-zero
-                                    val finalBitmap =
-                                        if (marginLeft > 0 || marginTop > 0 || marginRight > 0 || marginBottom > 0) {
-                                            originalBitmap.addMargins(
-                                                marginLeft, marginTop, marginRight, marginBottom
-                                            )
-                                        } else {
-                                            originalBitmap
-                                        }
-                                    val bytes = finalBitmap.toByteArray()
-
-                                    // Recycle bitmaps to free memory if they're different
-                                    if (finalBitmap !== originalBitmap) {
-                                        originalBitmap.recycle()
-                                    }
-
+                            getContentDimensions(
+                                webView,
+                                useExactDimensions
+                            ) { contentWidth, contentHeight ->
+                                val bytes =
+                                    processWebview(webView, contentWidth, contentHeight, margins)
+                                if (bytes != null) {
                                     result.success(bytes)
                                 } else {
                                     result.error(
@@ -127,6 +103,38 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
     }
 
+    private fun processWebview(
+        webView: WebView,
+        width: Double,
+        height: Double,
+        margins: List<Int>
+    ): ByteArray? {
+        // Creating the bitmap without margins
+        val originalBitmap = webView.toBitmap(
+            width, height
+        )
+        if (originalBitmap == null) {
+            return null
+        }
+
+        // Apply margins to the bitmap if any margin is non-zero
+        val finalBitmap =
+            if (margins[0] > 0 || margins[1] > 0 || margins[2] > 0 || margins[3] > 0) {
+                originalBitmap.addMargins(
+                    margins[0], margins[1], margins[2], margins[3]
+                )
+            } else {
+                originalBitmap
+            }
+        val bytes = finalBitmap.toByteArray()
+
+        // Recycle bitmaps to free memory if they're different
+        if (finalBitmap !== originalBitmap) {
+            originalBitmap.recycle()
+        }
+        return bytes
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebViewSettings(webView: WebView) {
         webView.settings.apply {
@@ -141,9 +149,26 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         }
     }
 
-    private fun getMaxContentDimensions(webView: WebView, callback: (Int, Int) -> Unit) {
+    private fun getContentDimensions(
+        webView: WebView,
+        useExactDimensions: Boolean,
+        callback: (Double, Double) -> Unit
+    ) {
         webView.evaluateJavascript(
-            """
+            if (useExactDimensions) """
+                            (function() {
+                                let maxRight = 0;
+                                let maxBottom = 0;
+
+                                document.body.querySelectorAll('*').forEach(el => {
+                                const rect = el.getBoundingClientRect();
+                                maxRight = Math.max(maxRight, rect.right);
+                                maxBottom = Math.max(maxBottom, rect.bottom);
+                                });
+
+                                return [maxRight, maxBottom];
+                            })();
+                            """ else """
                             (function() {
                                 var body = document.body;
                                 var html = document.documentElement;
@@ -167,8 +192,8 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                             """
         ) {
             val xy = JSONArray(it)
-            val contentWidth = xy[0].toString().toInt()
-            val contentHeight = xy[1].toString().toInt()
+            val contentWidth = (xy[0] as? Number)?.toDouble() ?: 0.0
+            val contentHeight = (xy[1] as? Number)?.toDouble() ?: 0.0
             callback(contentWidth, contentHeight)
         }
     }

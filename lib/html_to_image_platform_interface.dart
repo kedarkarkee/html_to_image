@@ -31,6 +31,8 @@ abstract class HtmlToImagePlatform extends PlatformInterface {
     int? width,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
+    bool useExactDimentions = false,
+    int initialScale = 1,
   }) {
     throw UnimplementedError('contentToImage() has not been implemented.');
   }

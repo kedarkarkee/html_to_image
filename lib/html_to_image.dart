@@ -21,6 +21,8 @@ class HtmlToImage {
     int? width,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
+    bool useExactDimentions = false,
+    int initialScale = 1,
   }) async {
     final content = await rootBundle.loadString(asset);
     return HtmlToImagePlatform.instance.convertToImage(
@@ -28,6 +30,8 @@ class HtmlToImage {
       width: width,
       delay: delay,
       margins: margins,
+      useExactDimentions: useExactDimentions,
+      initialScale: initialScale,
     );
   }
 
@@ -46,12 +50,16 @@ class HtmlToImage {
     int? width,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
+    bool useExactDimentions = false,
+    int initialScale = 1,
   }) {
     return HtmlToImagePlatform.instance.convertToImage(
       content: content,
       delay: delay,
       width: width,
       margins: margins,
+      useExactDimentions: useExactDimentions,
+      initialScale: initialScale,
     );
   }
 
@@ -70,6 +78,8 @@ class HtmlToImage {
     int? width,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
+    bool useExactDimentions = false,
+    int initialScale = 1,
   }) async {
     try {
       return await HtmlToImagePlatform.instance.convertToImage(
@@ -77,6 +87,8 @@ class HtmlToImage {
         delay: delay,
         width: width,
         margins: margins,
+        useExactDimentions: useExactDimentions,
+        initialScale: initialScale,
       );
     } catch (_) {
       return null;
