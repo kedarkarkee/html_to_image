@@ -25,7 +25,7 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
         let content = arguments!["content"] as? String
         let delay = arguments!["delay"] as? Double ?? 200.0
         let width =
-            arguments!["width"] as? Double ?? UIScreen.main.bounds.size.width
+        arguments!["width"] as? Double ?? UIScreen.main.bounds.size.width
 
         // Get margin parameters with default values
         let margins = arguments!["margins"] as? [Int]
@@ -33,6 +33,8 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
         let marginTop = margins![1] as Int
         let marginRight = margins![2] as Int
         let marginBottom = margins![3] as Int
+        
+        let useExactDimensions = arguments!["use_exact_dimensions"] as? Bool ?? false
 
         switch call.method {
         case "convertToImage":
@@ -53,76 +55,114 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
             var bytes = FlutterStandardTypedData.init(bytes: Data())
             urlObservation = webView.observe(
                 \.isLoading,
-                changeHandler: { (webView, change) in
-                    DispatchQueue.main.asyncAfter(
+                 changeHandler: { (webView, change) in
+                     DispatchQueue.main.asyncAfter(
                         deadline: .now() + (delay / 1000)
-                    ) {
-                        if #available(iOS 11.0, *) {
-                            self.webView.scrollView
-                                .contentInsetAdjustmentBehavior =
-                                UIScrollView.ContentInsetAdjustmentBehavior
-                                .never
-                            let configuration = WKSnapshotConfiguration()
-                            var size = self.webView.scrollView.contentSize
-                            size.height = size.height + 50
-                            configuration.rect = CGRect(
-                                origin: .zero,
-                                size: size
-                            )
-                            self.webView.snapshotView(afterScreenUpdates: true)
-                            self.webView.takeSnapshot(with: configuration) {
-                                (originalImage, error) in
-                                guard let image = originalImage else {
-                                    result(bytes)
-                                    self.dispose()
-                                    return
-                                }
+                     ) {
+                         if #available(iOS 11.0, *) {
+                             self.webView.scrollView
+                                 .contentInsetAdjustmentBehavior =
+                             UIScrollView.ContentInsetAdjustmentBehavior
+                                 .never
+                             let configuration = WKSnapshotConfiguration()
+                             self.getContentDimensions(
+                                useExactDimensions: useExactDimensions
+                             ) {
+                                 (size)in
+                       
+                                 configuration.rect = CGRect(
+                                    origin: .zero,
+                                    size: size
+                                 )
+                                 self.webView
+                                     .snapshotView(afterScreenUpdates: true)
+                                 self.webView
+                                     .takeSnapshot(with: configuration) {
+                                         (originalImage, error) in
+                                         guard let image = originalImage else {
+                                             result(bytes)
+                                             self.dispose()
+                                             return
+                                         }
 
-                                // Apply margins if any are non-zero
-                                let finalImage: UIImage
-                                if marginLeft > 0 || marginTop > 0
-                                    || marginRight > 0 || marginBottom > 0
-                                {
-                                    finalImage = self.addMargins(
-                                        to: image,
-                                        left: marginLeft,
-                                        top: marginTop,
-                                        right: marginRight,
-                                        bottom: marginBottom
-                                    )
-                                } else {
-                                    finalImage = image
-                                }
-                                guard
-                                    let data = finalImage.jpegData(
-                                        compressionQuality: 1
-                                    )
-                                else {
-                                    result(bytes)
-                                    self.dispose()
-                                    return
-                                }
+                                         // Apply margins if any are non-zero
+                                         let finalImage: UIImage
+                                         if marginLeft > 0 || marginTop > 0
+                                                || marginRight > 0 || marginBottom > 0
+                                         {
+                                             finalImage = self.addMargins(
+                                                to: image,
+                                                left: marginLeft,
+                                                top: marginTop,
+                                                right: marginRight,
+                                                bottom: marginBottom
+                                             )
+                                         } else {
+                                             finalImage = image
+                                         }
+                                         guard
+                                            let data = finalImage.jpegData(
+                                                compressionQuality: 1
+                                            )
+                                         else {
+                                             result(bytes)
+                                             self.dispose()
+                                             return
+                                         }
 
-                                bytes = FlutterStandardTypedData.init(
-                                    bytes: data
-                                )
-                                result(bytes)
+                                         bytes = FlutterStandardTypedData.init(
+                                            bytes: data
+                                         )
+                                         result(bytes)
 
-                                self.dispose()
+                                         self.dispose()
 
-                            }
-                        } else {
-                            result(bytes)
-                            self.dispose()
-                        }
+                                     }
+                             }
+                         } else {
+                             result(bytes)
+                             self.dispose()
+                         }
 
-                    }
-                }
+                     }
+                 }
             )
 
             break
         default:
             result(FlutterMethodNotImplemented)
+        }
+    }
+    
+    func getContentDimensions(
+        useExactDimensions: Bool,
+        completion: @escaping (CGSize) -> Void
+    ) {
+        if(!useExactDimensions){
+            completion(self.webView.scrollView.contentSize)
+            return
+        }
+        let js = """
+        (function() {
+            let maxRight = 0;
+            let maxBottom = 0;
+            document.body.querySelectorAll('*').forEach(el => {
+                const rect = el.getBoundingClientRect();
+                maxRight = Math.max(maxRight, rect.right);
+                maxBottom = Math.max(maxBottom, rect.bottom);
+            });
+            return [maxRight, maxBottom];
+        })();
+        """
+
+        self.webView.evaluateJavaScript(js) { result, error in
+            if let array = result as? [Double], array.count == 2 {
+                let contentWidth = array[0]
+                let contentHeight = array[1]
+                completion(CGSizeMake(contentWidth, contentHeight))
+            } else {
+                completion(self.webView.scrollView.contentSize)
+            }
         }
     }
 
