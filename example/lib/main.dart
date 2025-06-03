@@ -61,7 +61,8 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> convertToImageFromAsset() async {
     final image = await HtmlToImage.convertToImageFromAsset(
-      asset: 'assets/example.html',
+      asset: 'assets/invoice.html',
+      useExactDimensions: true,
     );
     setState(() {
       img = image;

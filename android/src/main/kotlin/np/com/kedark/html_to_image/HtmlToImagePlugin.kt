@@ -37,7 +37,7 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private lateinit var channel: MethodChannel
     private lateinit var activity: Activity
     private lateinit var context: Context
-    private lateinit var webView: WebView
+    private lateinit var webView: HtmlWebView
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "html_to_image")
@@ -57,146 +57,123 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val margins = (arguments["margins"] as List<*>).map { it as Int? ?: 0 }
 
         val useExactDimensions = arguments["use_exact_dimensions"] as Boolean? ?: false
-        val initialScale = arguments["initial_scale"] as Int? ?: 1
 
         if (method == "convertToImage") {
-            webView = WebView(this.context)
             val displaySize = getDisplaySize()
             val dwidth = width ?: displaySize.width
             val dheight = displaySize.height
             // Use a larger width for layout to prevent clipping
-            webView.layout(0, 0, dwidth * 2, dheight)
-            webView.loadDataWithBaseURL(null, content, "text/HTML", "UTF-8", null)
-            webView.setInitialScale(initialScale)
-            configureWebViewSettings(webView)
-            WebView.enableSlowWholeDocumentDraw()
-            webView.webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView, url: String) {
-                    super.onPageFinished(view, url)
-
-                    val scope = CoroutineScope(Dispatchers.IO)
-                    scope.launch {
-                        // Perform WebView-to-image conversion on a background thread
-                        val duration = (dheight / 1000) * delay // Delay for every 1000 px height
-
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            getContentDimensions(
-                                webView,
-                                useExactDimensions
-                            ) { contentWidth, contentHeight ->
-                                val bytes =
-                                    processWebview(webView, contentWidth, contentHeight, margins)
-                                if (bytes != null) {
-                                    result.success(bytes)
-                                } else {
-                                    result.error(
-                                        "CONVERSION_FAILED", "Failed to convert HTML to image", null
-                                    )
-                                }
-                            }
-                        }, duration.toLong())
-                    }
-                }
-            }
+            webView = HtmlWebView(
+                this.context,
+                HtmlWebViewClient(
+                    dwidth * 2,
+                    dheight,
+                    content,
+                    delay,
+                    margins,
+                    useExactDimensions,
+                    result
+                ),
+            )
         } else {
             return result.notImplemented()
         }
     }
+//
+//    private fun processWebview(
+//        webView: WebView,
+//        width: Double,
+//        height: Double,
+//        margins: List<Int>
+//    ): ByteArray? {
+//        // Creating the bitmap without margins
+//        val originalBitmap = webView.toBitmap(
+//            width, height, webView.client.currentScale
+//        )
+//        if (originalBitmap == null) {
+//            return null
+//        }
+//
+//        // Apply margins to the bitmap if any margin is non-zero
+//        val finalBitmap =
+//            if (margins[0] > 0 || margins[1] > 0 || margins[2] > 0 || margins[3] > 0) {
+//                originalBitmap.addMargins(
+//                    margins[0], margins[1], margins[2], margins[3]
+//                )
+//            } else {
+//                originalBitmap
+//            }
+//        val bytes = finalBitmap.toByteArray()
+//
+//        // Recycle bitmaps to free memory if they're different
+//        if (finalBitmap !== originalBitmap) {
+//            originalBitmap.recycle()
+//        }
+//        return bytes
+//    }
 
-    private fun processWebview(
-        webView: WebView,
-        width: Double,
-        height: Double,
-        margins: List<Int>
-    ): ByteArray? {
-        // Creating the bitmap without margins
-        val originalBitmap = webView.toBitmap(
-            width, height
-        )
-        if (originalBitmap == null) {
-            return null
-        }
-
-        // Apply margins to the bitmap if any margin is non-zero
-        val finalBitmap =
-            if (margins[0] > 0 || margins[1] > 0 || margins[2] > 0 || margins[3] > 0) {
-                originalBitmap.addMargins(
-                    margins[0], margins[1], margins[2], margins[3]
-                )
-            } else {
-                originalBitmap
-            }
-        val bytes = finalBitmap.toByteArray()
-
-        // Recycle bitmaps to free memory if they're different
-        if (finalBitmap !== originalBitmap) {
-            originalBitmap.recycle()
-        }
-        return bytes
-    }
-
-    @SuppressLint("SetJavaScriptEnabled")
-    private fun configureWebViewSettings(webView: WebView) {
-        webView.settings.apply {
-            javaScriptEnabled = true
-            useWideViewPort = true
-            javaScriptCanOpenWindowsAutomatically = true
-            loadWithOverviewMode = true
-            setSupportZoom(true)
-            builtInZoomControls = true
-            displayZoomControls = false
-            layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
-        }
-    }
-
-    private fun getContentDimensions(
-        webView: WebView,
-        useExactDimensions: Boolean,
-        callback: (Double, Double) -> Unit
-    ) {
-        webView.evaluateJavascript(
-            if (useExactDimensions) """
-                            (function() {
-                                let maxRight = 0;
-                                let maxBottom = 0;
-
-                                document.body.querySelectorAll('*').forEach(el => {
-                                const rect = el.getBoundingClientRect();
-                                maxRight = Math.max(maxRight, rect.right);
-                                maxBottom = Math.max(maxBottom, rect.bottom);
-                                });
-
-                                return [maxRight, maxBottom];
-                            })();
-                            """ else """
-                            (function() {
-                                var body = document.body;
-                                var html = document.documentElement;
-
-                                // Get the total width including any overflow
-                                var totalWidth = Math.max(
-                                    body.scrollWidth, html.scrollWidth,
-                                    body.offsetWidth, html.offsetWidth,
-                                    body.clientWidth, html.clientWidth
-                                );
-
-                                // Get the total height
-                                var totalHeight = Math.max(
-                                    body.scrollHeight, html.scrollHeight,
-                                    body.offsetHeight, html.offsetHeight,
-                                    body.clientHeight, html.clientHeight
-                                );
-
-                                return [totalWidth, totalHeight];
-                            })();
-                            """
-        ) {
-            val xy = JSONArray(it)
-            val contentWidth = (xy[0] as? Number)?.toDouble() ?: 0.0
-            val contentHeight = (xy[1] as? Number)?.toDouble() ?: 0.0
-            callback(contentWidth, contentHeight)
-        }
-    }
+//    @SuppressLint("SetJavaScriptEnabled")
+//    private fun configureWebViewSettings(webView: WebView) {
+//        webView.settings.apply {
+//            javaScriptEnabled = true
+//            useWideViewPort = true
+//            javaScriptCanOpenWindowsAutomatically = true
+//            loadWithOverviewMode = true
+//            setSupportZoom(true)
+//            builtInZoomControls = true
+//            displayZoomControls = false
+//            layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
+//        }
+//    }
+//
+//    private fun getContentDimensions(
+//        webView: WebView,
+//        useExactDimensions: Boolean,
+//        callback: (Double, Double) -> Unit
+//    ) {
+//        webView.evaluateJavascript(
+//            if (useExactDimensions) """
+//                            (function() {
+//                                let maxRight = 0;
+//                                let maxBottom = 0;
+//
+//                                document.body.querySelectorAll('*').forEach(el => {
+//                                const rect = el.getBoundingClientRect();
+//                                maxRight = Math.max(maxRight, rect.right);
+//                                maxBottom = Math.max(maxBottom, rect.bottom);
+//                                });
+//
+//                                return [maxRight, maxBottom];
+//                            })();
+//                            """ else """
+//                            (function() {
+//                                var body = document.body;
+//                                var html = document.documentElement;
+//
+//                                // Get the total width including any overflow
+//                                var totalWidth = Math.max(
+//                                    body.scrollWidth, html.scrollWidth,
+//                                    body.offsetWidth, html.offsetWidth,
+//                                    body.clientWidth, html.clientWidth
+//                                );
+//
+//                                // Get the total height
+//                                var totalHeight = Math.max(
+//                                    body.scrollHeight, html.scrollHeight,
+//                                    body.offsetHeight, html.offsetHeight,
+//                                    body.clientHeight, html.clientHeight
+//                                );
+//
+//                                return [totalWidth, totalHeight];
+//                            })();
+//                            """
+//        ) {
+//            val xy = JSONArray(it)
+//            val contentWidth = (xy[0] as? Number)?.toDouble() ?: 0.0
+//            val contentHeight = (xy[1] as? Number)?.toDouble() ?: 0.0
+//            callback(contentWidth, contentHeight)
+//        }
+//    }
 
     @Suppress("DEPRECATION")
     private fun getDisplaySize(): Size {
@@ -210,7 +187,7 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
-        webView = WebView(activity.applicationContext)
+        webView = HtmlWebView(activity.applicationContext)
         webView.minimumHeight = 1
         webView.minimumWidth = 1
     }
@@ -230,23 +207,24 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 }
 
-
-fun WebView.toBitmap(offsetWidth: Double, offsetHeight: Double): Bitmap? {
-    if (offsetHeight > 0 && offsetWidth > 0) {
-        // Add extra padding to width to prevent clipping
-        val width = ((offsetWidth + 20) * this.scale).absoluteValue.toInt()
-        val height = (offsetHeight * this.scale).absoluteValue.toInt()
-        this.measure(
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-        )
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        this.draw(canvas)
-        return bitmap
-    }
-    return null
-}
+//
+//fun WebView.toBitmap(offsetWidth: Double, offsetHeight: Double, scale: Float): Bitmap? {
+//    if (offsetHeight > 0 && offsetWidth > 0) {
+//        // Add extra padding to width to prevent clipping
+//        val scaledDensity = this.resources.displayMetrics.density * scale
+//        val width = ((offsetWidth) * scaledDensity).absoluteValue.toInt()
+//        val height = (offsetHeight * scaledDensity).absoluteValue.toInt()
+//        this.measure(
+//            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+//            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+//        )
+//        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+//        val canvas = Canvas(bitmap)
+//        this.draw(canvas)
+//        return bitmap
+//    }
+//    return null
+//}
 
 fun Bitmap.toByteArray(): ByteArray {
     ByteArrayOutputStream().apply {
