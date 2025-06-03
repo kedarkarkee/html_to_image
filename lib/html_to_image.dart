@@ -18,18 +18,17 @@ class HtmlToImage {
   /// [margins] Represents the margins for an output image.
   static Future<Uint8List> convertToImageFromAsset({
     required String asset,
-    int? width,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
-    bool useExactDimensions = false,
+    HtmlDimensionStrategy dimensionStrategy =
+        const HtmlDimensionStrategy.auto(),
   }) async {
     final content = await rootBundle.loadString(asset);
     return HtmlToImagePlatform.instance.convertToImage(
       content: content,
-      width: width,
       delay: delay,
       margins: margins,
-      useExactDimensions: useExactDimensions,
+      dimensionStrategy: dimensionStrategy,
     );
   }
 
@@ -45,17 +44,16 @@ class HtmlToImage {
   /// [margins] Represents the margins for an output image.
   static Future<Uint8List> convertToImage({
     required String content,
-    int? width,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
-    bool useExactDimensions = false,
+    HtmlDimensionStrategy dimensionStrategy =
+        const HtmlDimensionStrategy.auto(),
   }) {
     return HtmlToImagePlatform.instance.convertToImage(
       content: content,
       delay: delay,
-      width: width,
       margins: margins,
-      useExactDimensions: useExactDimensions,
+      dimensionStrategy: dimensionStrategy,
     );
   }
 
@@ -71,18 +69,17 @@ class HtmlToImage {
   /// [margins] Represents the margins for an output image.
   static Future<Uint8List?> tryConvertToImage({
     required String content,
-    int? width,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
-    bool useExactDimensions = false,
+    HtmlDimensionStrategy dimensionStrategy =
+        const HtmlDimensionStrategy.auto(),
   }) async {
     try {
       return await HtmlToImagePlatform.instance.convertToImage(
         content: content,
         delay: delay,
-        width: width,
         margins: margins,
-        useExactDimensions: useExactDimensions,
+        dimensionStrategy: dimensionStrategy,
       );
     } catch (_) {
       return null;

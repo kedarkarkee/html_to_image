@@ -19,6 +19,14 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late final TextEditingController _controller;
   Uint8List? img;
+  int currentStrategy = 0;
+
+  static const strategies = [
+    (0, 'Auto'),
+    (1, 'Constant'),
+    (2, 'Fit'),
+    (3, 'Full'),
+  ];
 
   static const _dummyContent = '''
   <html>
@@ -50,23 +58,42 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
   }
 
+  HtmlDimensionStrategy _getStrategy() {
+    if (currentStrategy == 0) return const HtmlDimensionStrategy.auto();
+    if (currentStrategy == 1) {
+      return const HtmlDimensionStrategy.withDimensions(
+        width: 300,
+        height: 800,
+      );
+    }
+    if (currentStrategy == 2) return const HtmlDimensionStrategy.fitContent();
+    return const HtmlDimensionStrategy.fullScroll();
+  }
+
   Future<void> convertToImage() async {
     final image = await HtmlToImage.tryConvertToImage(
       content: _controller.text,
+      dimensionStrategy: _getStrategy(),
     );
     setState(() {
       img = image;
     });
+    final im = await decodeImageFromList(image!);
+    print(im.width);
+    print(im.height);
   }
 
   Future<void> convertToImageFromAsset() async {
     final image = await HtmlToImage.convertToImageFromAsset(
       asset: 'assets/invoice.html',
-      useExactDimensions: true,
+      dimensionStrategy: _getStrategy(),
     );
     setState(() {
       img = image;
     });
+    final im = await decodeImageFromList(image);
+    print(im.width);
+    print(im.height);
   }
 
   @override
@@ -91,6 +118,28 @@ class _MyAppState extends State<MyApp> {
                           maxLines: 100,
                         ),
                       ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          for (final (i, s) in strategies)
+                            Row(
+                              children: [
+                                Radio<int>(
+                                  value: i,
+                                  groupValue: currentStrategy,
+                                  onChanged: (v) {
+                                    if (v == null) return;
+                                    setState(() {
+                                      currentStrategy = v;
+                                    });
+                                  },
+                                ),
+                                Text(s)
+                              ],
+                            )
+                        ],
+                      ),
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [

@@ -4,22 +4,30 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.view.View
 import android.webkit.WebSettings
 import android.webkit.WebView
 import kotlin.math.absoluteValue
+import kotlin.math.ceil
 
-class HtmlWebView(context: Context, val client: HtmlWebViewClient? = null) : WebView(context) {
+@SuppressLint("ViewConstructor")
+class HtmlWebView(context: Context, private val client: HtmlWebViewClient? = null) :
+    WebView(context) {
 
     init {
         if (client != null) {
             this.webViewClient = client
-            this.layout(0, 0, client.width, client.height)
+            this.layout(0, 0, widthPixels, heightPixels)
             this.loadDataWithBaseURL(null, client.content, "text/HTML", "UTF-8", null)
             configureWebViewSettings()
             enableSlowWholeDocumentDraw()
         }
     }
+
+    val widthPixels: Int
+        get() = this.resources.displayMetrics.widthPixels
+
+    val heightPixels: Int
+        get() = this.resources.displayMetrics.heightPixels
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebViewSettings() {
@@ -34,7 +42,6 @@ class HtmlWebView(context: Context, val client: HtmlWebViewClient? = null) : Web
             layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
         }
     }
-
 
     fun captureImage(
         width: Double,
@@ -69,14 +76,13 @@ class HtmlWebView(context: Context, val client: HtmlWebViewClient? = null) : Web
 
     private fun toBitmap(offsetWidth: Double, offsetHeight: Double): Bitmap? {
         if (offsetHeight > 0 && offsetWidth > 0) {
-            // Add extra padding to width to prevent clipping
-            val scaledDensity =
-                this.resources.displayMetrics.density * (client?.currentScale ?: 1.0f)
-            val width = (offsetWidth * scaledDensity).absoluteValue.toInt()
-            val height = (offsetHeight * scaledDensity).absoluteValue.toInt()
+            val currentScale = client?.currentScale ?: 1.0f
+
+            val width = ceil(offsetWidth * currentScale).absoluteValue.toInt()
+            val height = ceil(offsetHeight * currentScale).absoluteValue.toInt()
             this.measure(
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
             )
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)

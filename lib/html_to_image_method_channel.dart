@@ -13,22 +13,22 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
   @override
   Future<Uint8List> convertToImage({
     required String content,
-    int? width,
-    Duration delay = const Duration(milliseconds: 200),
-    ImageMargins margins = const ImageMargins(),
-    bool useExactDimensions = false,
+    required Duration delay,
+    required ImageMargins margins,
+    required HtmlDimensionStrategy dimensionStrategy,
   }) async {
     final Map<String, dynamic> arguments = {
       'content': content,
       'delay': delay.inMilliseconds,
-      'width': width,
+      'width': dimensionStrategy.width,
+      'height': dimensionStrategy.height,
       'margins': [
         margins.left,
         margins.top,
         margins.right,
         margins.bottom,
       ],
-      'use_exact_dimensions': useExactDimensions,
+      'dimension_script': dimensionStrategy.script,
     };
     try {
       final result = await (methodChannel.invokeMethod(

@@ -28,10 +28,9 @@ abstract class HtmlToImagePlatform extends PlatformInterface {
 
   Future<Uint8List> convertToImage({
     required String content,
-    int? width,
-    Duration delay = const Duration(milliseconds: 200),
-    ImageMargins margins = const ImageMargins(),
-    bool useExactDimensions = false,
+    required Duration delay,
+    required ImageMargins margins,
+    required HtmlDimensionStrategy dimensionStrategy,
   }) {
     throw UnimplementedError('contentToImage() has not been implemented.');
   }
