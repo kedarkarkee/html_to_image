@@ -17,7 +17,6 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
     bool useExactDimensions = false,
-    int initialScale = 1,
   }) async {
     final Map<String, dynamic> arguments = {
       'content': content,
@@ -30,7 +29,6 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
         margins.bottom,
       ],
       'use_exact_dimensions': useExactDimensions,
-      'initial_scale': initialScale,
     };
     try {
       final result = await (methodChannel.invokeMethod(
