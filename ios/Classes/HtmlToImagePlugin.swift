@@ -68,8 +68,7 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
                              self.getContentDimensions(
                                 useExactDimensions: useExactDimensions
                              ) {
-                                 (size)in
-                       
+                                 (size) in
                                  configuration.rect = CGRect(
                                     origin: .zero,
                                     size: size
@@ -101,9 +100,7 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
                                              finalImage = image
                                          }
                                          guard
-                                            let data = finalImage.jpegData(
-                                                compressionQuality: 1
-                                            )
+                                            let data = finalImage.pngData()
                                          else {
                                              result(bytes)
                                              self.dispose()
