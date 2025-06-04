@@ -10,8 +10,9 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
     private var margins: [Int]
     private var delay: Int
     private var dimensionScript: String?
-    private var completion: (Data?) -> Void
+    private var webViewConfiguration: [String: Any]
     private var currentScale: CGFloat = 1.0
+    private var completion: (Data?) -> Void
 
     init(
         content: String,
@@ -20,6 +21,7 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
         margins: [Int],
         delay: Int,
         dimensionScript: String?,
+        webViewConfiguration: [String: Any],
         completion: @escaping (Data?) -> Void
     ) {
         self.content = content
@@ -28,6 +30,7 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
         self.margins = margins
         self.delay = delay
         self.dimensionScript = dimensionScript
+        self.webViewConfiguration = webViewConfiguration
         self.completion = completion
     }
 
@@ -38,8 +41,11 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
     private func getConfig() -> WKWebViewConfiguration {
         let config = WKWebViewConfiguration()
         let prefs = WKPreferences()
-        prefs.javaScriptEnabled = true
-        prefs.javaScriptCanOpenWindowsAutomatically = true
+        prefs.javaScriptEnabled =
+            webViewConfiguration["javascript_enabled"] as? Bool ?? true
+        prefs.javaScriptCanOpenWindowsAutomatically =
+            webViewConfiguration["javascript_can_open_windows_automatically"]
+            as? Bool ?? false
         config.preferences = prefs
         return config
     }

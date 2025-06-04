@@ -32,6 +32,9 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
 
         let dimensionScript = arguments!["dimension_script"] as? String
 
+        let webViewConfiguration =
+            arguments!["web_view_configuration"] as? [String: Any]
+
         switch call.method {
         case "convertToImage":
             let htmlWebView = HtmlWebView(
@@ -41,6 +44,7 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
                 margins: margins!,
                 delay: delay,
                 dimensionScript: dimensionScript,
+                webViewConfiguration: webViewConfiguration!,
                 completion: { imageData in
                     if let imageData = imageData {
                         let bytes = FlutterStandardTypedData.init(
