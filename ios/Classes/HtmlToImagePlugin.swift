@@ -30,6 +30,9 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
 
         let margins = arguments!["margins"] as? [Int]
 
+        let useDeviceScaleFactor =
+            arguments!["use_device_scale_factor"] as? Bool ?? true
+
         let dimensionScript = arguments!["dimension_script"] as? String
 
         let webViewConfiguration =
@@ -42,6 +45,7 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
                 width: width,
                 height: height,
                 margins: margins!,
+                useDeviceScaleFactor: useDeviceScaleFactor,
                 delay: delay,
                 dimensionScript: dimensionScript,
                 webViewConfiguration: webViewConfiguration!,

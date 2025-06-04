@@ -8,6 +8,7 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
     private var width: Double?
     private var height: Double?
     private var margins: [Int]
+    private var useDeviceScaleFactor: Bool
     private var delay: Int
     private var dimensionScript: String?
     private var webViewConfiguration: [String: Any]
@@ -19,6 +20,7 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
         width: Double?,
         height: Double?,
         margins: [Int],
+        useDeviceScaleFactor: Bool,
         delay: Int,
         dimensionScript: String?,
         webViewConfiguration: [String: Any],
@@ -28,6 +30,7 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
         self.width = width
         self.height = height
         self.margins = margins
+        self.useDeviceScaleFactor = useDeviceScaleFactor
         self.delay = delay
         self.dimensionScript = dimensionScript
         self.webViewConfiguration = webViewConfiguration
@@ -92,8 +95,16 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
                                 origin: .zero,
                                 size: CGSizeMake(scaledWidth, scaledHeight)
                             )
+                            NSLog("Scaled Width is %f", scaledWidth)
+                            NSLog("Size Width is %f", size.width)
+                            NSLog("Current Scale is %f", self.currentScale)
 
-                            configuration.snapshotWidth = size.width as NSNumber
+                            let targetWidth =
+                                self.useDeviceScaleFactor
+                                ? size.width : size.width / UIScreen.main.scale
+
+                            configuration.snapshotWidth =
+                                targetWidth as NSNumber
                             self.webView
                                 .snapshotView(afterScreenUpdates: true)
                             self.webView

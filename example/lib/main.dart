@@ -84,13 +84,11 @@ class _MyAppState extends State<MyApp> {
     final image = await HtmlToImage.convertToImageFromAsset(
       asset: 'assets/invoice.html',
       dimensionStrategy: _getStrategy(),
+      useDeviceScaleFactor: false,
     );
     setState(() {
       img = image;
     });
-    final im = await decodeImageFromList(image);
-    print(im.width);
-    print(im.height);
   }
 
   @override
