@@ -23,9 +23,9 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
             return
         }
         let content = arguments!["content"] as? String
-        let delay = arguments!["delay"] as? Double ?? 200.0
-        let width =
-        arguments!["width"] as? Double ?? UIScreen.main.bounds.size.width
+        let delay = arguments!["delay"] as? Int ?? 200
+        let width = arguments!["width"] as? Double
+        let height = arguments!["height"] as? Double
 
         // Get margin parameters with default values
         let margins = arguments!["margins"] as? [Int]
@@ -34,15 +34,35 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
         let marginRight = margins![2] as Int
         let marginBottom = margins![3] as Int
         
-        let useExactDimensions = arguments!["use_exact_dimensions"] as? Bool ?? false
+        let dimensionScript = arguments!["dimension_script"] as? String
 
         switch call.method {
         case "convertToImage":
+            // Create HtmlWebView
+            let htmlWebView = HtmlWebView(
+                     content: content!,
+                     width: width,
+                     height: height,
+                     margins: margins!,
+                     delay: delay,
+                     dimensionScript: dimensionScript,
+                     completion: { imageData in
+                         if let imageData = imageData {
+                             let bytes = FlutterStandardTypedData.init(bytes: imageData)
+                             result(bytes)
+                         } else {
+                             result(FlutterError(code: "CONVERSION_FAILED", message: "Failed to convert HTML to image", details: nil))
+                         }
+                     }
+                 )
+            htmlWebView.process()
+            break
+        case "convertToImagedf":
             self.webView = WKWebView(
                 frame: CGRect(
                     x: 0,
                     y: 0,
-                    width: width,
+                    width: UIScreen.main.bounds.size.width,
                     height: UIScreen.main.bounds.size.height
                 )
             )
@@ -57,7 +77,7 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
                 \.isLoading,
                  changeHandler: { (webView, change) in
                      DispatchQueue.main.asyncAfter(
-                        deadline: .now() + (delay / 1000)
+                        deadline: .now() + .milliseconds(delay)
                      ) {
                          if #available(iOS 11.0, *) {
                              self.webView.scrollView
@@ -66,13 +86,16 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
                                  .never
                              let configuration = WKSnapshotConfiguration()
                              self.getContentDimensions(
-                                useExactDimensions: useExactDimensions
+                                width: width,
+                                height: height,
+                                dimensionScript: dimensionScript,
                              ) {
                                  (size) in
                                  configuration.rect = CGRect(
                                     origin: .zero,
-                                    size: size
+                                    size: CGSizeMake(size.width / UIScreen.main.scale, size.height / UIScreen.main.scale)
                                  )
+                                 configuration.snapshotWidth = (size.width / UIScreen.main.scale) as NSNumber
                                  self.webView
                                      .snapshotView(afterScreenUpdates: true)
                                  self.webView
@@ -132,33 +155,23 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
     }
     
     func getContentDimensions(
-        useExactDimensions: Bool,
+        width: Double?,
+        height: Double?,
+        dimensionScript: String?,
         completion: @escaping (CGSize) -> Void
     ) {
-        if(!useExactDimensions){
-            completion(self.webView.scrollView.contentSize)
+        let frameSize = CGSizeMake(width ?? self.webView.frame.width, height ?? self.webView.frame.height)
+        if(dimensionScript == nil){
+            completion(frameSize)
             return
         }
-        let js = """
-        (function() {
-            let maxRight = 0;
-            let maxBottom = 0;
-            document.body.querySelectorAll('*').forEach(el => {
-                const rect = el.getBoundingClientRect();
-                maxRight = Math.max(maxRight, rect.right);
-                maxBottom = Math.max(maxBottom, rect.bottom);
-            });
-            return [maxRight, maxBottom];
-        })();
-        """
-
-        self.webView.evaluateJavaScript(js) { result, error in
+        self.webView.evaluateJavaScript(dimensionScript!) { result, error in
             if let array = result as? [Double], array.count == 2 {
                 let contentWidth = array[0]
                 let contentHeight = array[1]
                 completion(CGSizeMake(contentWidth, contentHeight))
             } else {
-                completion(self.webView.scrollView.contentSize)
+                completion(frameSize)
             }
         }
     }

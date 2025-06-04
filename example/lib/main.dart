@@ -78,9 +78,6 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       img = image;
     });
-    final im = await decodeImageFromList(image!);
-    print(im.width);
-    print(im.height);
   }
 
   Future<void> convertToImageFromAsset() async {

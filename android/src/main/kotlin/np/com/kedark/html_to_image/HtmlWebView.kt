@@ -77,15 +77,17 @@ class HtmlWebView(context: Context, private val client: HtmlWebViewClient? = nul
     private fun toBitmap(offsetWidth: Double, offsetHeight: Double): Bitmap? {
         if (offsetHeight > 0 && offsetWidth > 0) {
             val currentScale = client?.currentScale ?: 1.0f
+            val densityFactor = resources.displayMetrics.density
 
-            val width = ceil(offsetWidth * currentScale).absoluteValue.toInt()
-            val height = ceil(offsetHeight * currentScale).absoluteValue.toInt()
+            val width = ceil(offsetWidth * currentScale * densityFactor).absoluteValue.toInt()
+            val height = ceil(offsetHeight * currentScale * densityFactor).absoluteValue.toInt()
             this.measure(
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
             )
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
+            canvas.scale(densityFactor, densityFactor)
             this.draw(canvas)
             return bitmap
         }
