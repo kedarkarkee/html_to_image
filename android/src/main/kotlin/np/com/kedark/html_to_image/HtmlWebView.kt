@@ -10,14 +10,19 @@ import kotlin.math.absoluteValue
 import kotlin.math.ceil
 
 @SuppressLint("ViewConstructor")
-class HtmlWebView(context: Context, private val client: HtmlWebViewClient, private val configuration: Map<*,*>) :
+class HtmlWebView(
+    context: Context,
+    private val client: HtmlWebViewClient,
+    private val configuration: Map<*, *>,
+    private val useDeviceScaleFactor: Boolean
+) :
     WebView(context) {
 
     init {
-            this.webViewClient = client
-            this.layout(0, 0, widthPixels, heightPixels)
-            this.loadDataWithBaseURL(null, client.content, "text/HTML", "UTF-8", null)
-            configureWebViewSettings()
+        this.webViewClient = client
+        this.layout(0, 0, widthPixels, heightPixels)
+        this.loadDataWithBaseURL(null, client.content, "text/HTML", "UTF-8", null)
+        configureWebViewSettings()
     }
 
     val widthPixels: Int
@@ -30,14 +35,19 @@ class HtmlWebView(context: Context, private val client: HtmlWebViewClient, priva
     private fun configureWebViewSettings() {
         this.settings.apply {
             javaScriptEnabled = configuration["javascript_enabled"] as? Boolean ?: true
-            javaScriptCanOpenWindowsAutomatically = configuration["javascript_can_open_windows_automatically"] as? Boolean ?: false
+            javaScriptCanOpenWindowsAutomatically =
+                configuration["javascript_can_open_windows_automatically"] as? Boolean ?: false
 
-            val androidWebViewSettings = configuration["android_web_view_configuration"] as Map<*,*>
+            val androidWebViewSettings =
+                configuration["android_web_view_configuration"] as Map<*, *>
             useWideViewPort = androidWebViewSettings["use_wide_view_port"] as? Boolean ?: true
-            loadWithOverviewMode = androidWebViewSettings["load_with_overview_mode"] as? Boolean ?: true
+            loadWithOverviewMode =
+                androidWebViewSettings["load_with_overview_mode"] as? Boolean ?: true
             setSupportZoom(androidWebViewSettings["set_support_zoom"] as? Boolean ?: true)
-            builtInZoomControls = androidWebViewSettings["built_in_zoom_controls"] as? Boolean ?: true
-            displayZoomControls = androidWebViewSettings["display_zoom_controls"] as? Boolean ?: false
+            builtInZoomControls =
+                androidWebViewSettings["built_in_zoom_controls"] as? Boolean ?: true
+            displayZoomControls =
+                androidWebViewSettings["display_zoom_controls"] as? Boolean ?: false
             layoutAlgorithm = when (androidWebViewSettings["layout_algorithm"] as? String) {
                 "NORMAL" -> WebSettings.LayoutAlgorithm.NORMAL
                 "TEXT_AUTOSIZING" -> WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
@@ -83,7 +93,7 @@ class HtmlWebView(context: Context, private val client: HtmlWebViewClient, priva
     private fun toBitmap(offsetWidth: Double, offsetHeight: Double): Bitmap? {
         if (offsetHeight > 0 && offsetWidth > 0) {
             val currentScale = client.currentScale
-            val densityFactor = resources.displayMetrics.density
+            val densityFactor = if (useDeviceScaleFactor) resources.displayMetrics.density else 1.0f
 
             val width = ceil(offsetWidth * currentScale * densityFactor).absoluteValue.toInt()
             val height = ceil(offsetHeight * currentScale * densityFactor).absoluteValue.toInt()
@@ -93,7 +103,10 @@ class HtmlWebView(context: Context, private val client: HtmlWebViewClient, priva
             )
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
-            canvas.scale(densityFactor, densityFactor)
+            if (useDeviceScaleFactor) {
+                canvas.scale(densityFactor, densityFactor)
+            }
+
             this.draw(canvas)
             return bitmap
         }

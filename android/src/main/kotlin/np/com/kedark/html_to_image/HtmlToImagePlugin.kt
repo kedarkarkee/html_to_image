@@ -37,13 +37,14 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val delay = arguments["delay"] as Int? ?: 200
         val width = arguments["width"] as Int?
         val height = arguments["height"] as Int?
-        
-        // Get margin parameters with default values
+
         val margins = (arguments["margins"] as List<*>).map { it as Int? ?: 0 }
+
+        val useDeviceScaleFactor = arguments["use_device_scale_factor"] as Boolean? ?: true
 
         val dimensionScript = arguments["dimension_script"] as String?
 
-        val webViewConfiguration = arguments["web_view_configuration"] as Map<*,*>
+        val webViewConfiguration = arguments["web_view_configuration"] as Map<*, *>
 
         if (method == "convertToImage") {
             webView = HtmlWebView(
@@ -57,7 +58,8 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     dimensionScript,
                     result
                 ),
-                webViewConfiguration
+                webViewConfiguration,
+                useDeviceScaleFactor
             )
         } else {
             return result.notImplemented()
