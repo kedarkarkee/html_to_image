@@ -16,6 +16,7 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
     required String content,
     required Duration delay,
     required ImageMargins margins,
+    required bool useDeviceScaleFactor,
     required HtmlDimensionStrategy dimensionStrategy,
     required WebViewConfiguration webViewConfiguration,
   }) async {
@@ -30,6 +31,7 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
         margins.right,
         margins.bottom,
       ],
+      'use_device_scale_factor': useDeviceScaleFactor,
       'dimension_script': dimensionStrategy.script,
       'web_view_configuration': webViewConfiguration.toMap(),
     };

@@ -15,6 +15,7 @@ class MockHtmlToImagePlatform
     required String content,
     required Duration delay,
     required ImageMargins margins,
+    required bool useDeviceScaleFactor,
     required HtmlDimensionStrategy dimensionStrategy,
     required WebViewConfiguration webViewConfiguration,
   }) {

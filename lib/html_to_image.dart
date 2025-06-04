@@ -22,6 +22,7 @@ class HtmlToImage {
     required String asset,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
+    bool useDeviceScaleFactor = true,
     HtmlDimensionStrategy dimensionStrategy =
         const HtmlDimensionStrategy.auto(),
     WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
@@ -31,6 +32,7 @@ class HtmlToImage {
       content: content,
       delay: delay,
       margins: margins,
+      useDeviceScaleFactor: useDeviceScaleFactor,
       dimensionStrategy: dimensionStrategy,
       webViewConfiguration: webViewConfiguration,
     );
@@ -50,6 +52,7 @@ class HtmlToImage {
     required String content,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
+    bool useDeviceScaleFactor = true,
     HtmlDimensionStrategy dimensionStrategy =
         const HtmlDimensionStrategy.auto(),
     WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
@@ -58,6 +61,7 @@ class HtmlToImage {
       content: content,
       delay: delay,
       margins: margins,
+      useDeviceScaleFactor: useDeviceScaleFactor,
       dimensionStrategy: dimensionStrategy,
       webViewConfiguration: webViewConfiguration,
     );
@@ -77,6 +81,7 @@ class HtmlToImage {
     required String content,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
+    bool useDeviceScaleFactor = true,
     HtmlDimensionStrategy dimensionStrategy =
         const HtmlDimensionStrategy.auto(),
     WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
@@ -86,6 +91,7 @@ class HtmlToImage {
         content: content,
         delay: delay,
         margins: margins,
+        useDeviceScaleFactor: useDeviceScaleFactor,
         dimensionStrategy: dimensionStrategy,
         webViewConfiguration: webViewConfiguration,
       );
