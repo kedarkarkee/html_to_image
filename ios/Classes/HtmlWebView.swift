@@ -1,7 +1,7 @@
-import WebKit
 import UIKit
+import WebKit
 
-class HtmlWebView: NSObject, WKNavigationDelegate {
+class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
     private var webView: WKWebView!
     private var urlObservation: NSKeyValueObservation?
     private var content: String
@@ -12,8 +12,16 @@ class HtmlWebView: NSObject, WKNavigationDelegate {
     private var dimensionScript: String?
     private var completion: (Data?) -> Void
     private var currentScale: CGFloat = 1.0
-    
-    init(content: String, width: Double?, height: Double?, margins: [Int], delay: Int, dimensionScript: String?, completion: @escaping (Data?) -> Void) {
+
+    init(
+        content: String,
+        width: Double?,
+        height: Double?,
+        margins: [Int],
+        delay: Int,
+        dimensionScript: String?,
+        completion: @escaping (Data?) -> Void
+    ) {
         self.content = content
         self.width = width
         self.height = height
@@ -22,8 +30,20 @@ class HtmlWebView: NSObject, WKNavigationDelegate {
         self.dimensionScript = dimensionScript
         self.completion = completion
     }
-    
-    
+
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        self.currentScale = scrollView.zoomScale
+    }
+
+    private func getConfig() -> WKWebViewConfiguration {
+        let config = WKWebViewConfiguration()
+        let prefs = WKPreferences()
+        prefs.javaScriptEnabled = true
+        prefs.javaScriptCanOpenWindowsAutomatically = true
+        config.preferences = prefs
+        return config
+    }
+
     func process() {
         self.webView = WKWebView(
             frame: CGRect(
@@ -31,8 +51,11 @@ class HtmlWebView: NSObject, WKNavigationDelegate {
                 y: 0,
                 width: UIScreen.main.bounds.size.width,
                 height: UIScreen.main.bounds.size.height
-            )
+            ),
+            configuration: getConfig()
         )
+        self.webView.navigationDelegate = self
+        self.webView.scrollView.delegate = self
         self.webView.isHidden = true
         self.webView.tag = 100
         self.webView.loadHTMLString(
@@ -41,89 +64,94 @@ class HtmlWebView: NSObject, WKNavigationDelegate {
         )
         urlObservation = webView.observe(
             \.isLoading,
-             changeHandler: { (webView, change) in
-                 DispatchQueue.main.asyncAfter(
+            changeHandler: { (webView, change) in
+                DispatchQueue.main.asyncAfter(
                     deadline: .now() + .milliseconds(self.delay)
-                 ) {
-                     if #available(iOS 11.0, *) {
-                         self.webView.scrollView
-                             .contentInsetAdjustmentBehavior =
-                         UIScrollView.ContentInsetAdjustmentBehavior
-                             .never
-                         let configuration = WKSnapshotConfiguration()
-                         self.getContentDimensions(
+                ) {
+                    if #available(iOS 11.0, *) {
+                        self.webView.scrollView
+                            .contentInsetAdjustmentBehavior =
+                            UIScrollView.ContentInsetAdjustmentBehavior
+                            .never
+                        let configuration = WKSnapshotConfiguration()
+                        self.getContentDimensions(
                             width: self.width,
                             height: self.height,
                             dimensionScript: self.dimensionScript,
-                         ) {
-                             (size) in
-                             configuration.rect = CGRect(
+                        ) {
+                            (size) in
+                            let scaledWidth = size.width * self.currentScale
+                            let scaledHeight = size.height * self.currentScale
+                            configuration.rect = CGRect(
                                 origin: .zero,
-                                size: CGSizeMake(size.width / UIScreen.main.scale, size.height / UIScreen.main.scale)
-                             )
-                             configuration.snapshotWidth = (size.width / UIScreen.main.scale) as NSNumber
-                             self.webView
-                                 .snapshotView(afterScreenUpdates: true)
-                             self.webView
-                                 .takeSnapshot(with: configuration) {
-                                     (originalImage, error) in
-                                     guard let image = originalImage else {
-                                         self.completion(Data())
-                                         self.dispose()
-                                         return
-                                     }
+                                size: CGSizeMake(scaledWidth, scaledHeight)
+                            )
 
-                                     // Apply margins if any are non-zero
-                                     let finalImage: UIImage
-                                     let marginLeft = self.margins[0]
-                                     let marginTop = self.margins[1]
-                                     let marginRight = self.margins[2]
-                                     let marginBottom = self.margins[3]
-                                     if marginLeft > 0 || marginTop > 0
-                                            || marginRight > 0 || marginBottom > 0
-                                     {
-                                         finalImage = self.addMargins(
+                            configuration.snapshotWidth = size.width as NSNumber
+                            self.webView
+                                .snapshotView(afterScreenUpdates: true)
+                            self.webView
+                                .takeSnapshot(with: configuration) {
+                                    (originalImage, error) in
+                                    guard let image = originalImage else {
+                                        self.completion(Data())
+                                        self.dispose()
+                                        return
+                                    }
+
+                                    // Apply margins if any are non-zero
+                                    let finalImage: UIImage
+                                    let marginLeft = self.margins[0]
+                                    let marginTop = self.margins[1]
+                                    let marginRight = self.margins[2]
+                                    let marginBottom = self.margins[3]
+                                    if marginLeft > 0 || marginTop > 0
+                                        || marginRight > 0 || marginBottom > 0
+                                    {
+                                        finalImage = self.addMargins(
                                             to: image,
                                             left: marginLeft,
                                             top: marginTop,
                                             right: marginRight,
                                             bottom: marginBottom
-                                         )
-                                     } else {
-                                         finalImage = image
-                                     }
-                                     guard
+                                        )
+                                    } else {
+                                        finalImage = image
+                                    }
+                                    guard
                                         let data = finalImage.pngData()
-                                     else {
-                                         self.completion(Data())
-                                         self.dispose()
-                                         return
-                                     }
-                                     self.completion(data)
+                                    else {
+                                        self.completion(Data())
+                                        self.dispose()
+                                        return
+                                    }
+                                    self.completion(data)
 
-                                     self.dispose()
+                                    self.dispose()
 
-                                 }
-                         }
-                     } else {
-                         self.completion(Data())
-                         self.dispose()
-                     }
+                                }
+                        }
+                    } else {
+                        self.completion(Data())
+                        self.dispose()
+                    }
 
-                 }
-             }
+                }
+            }
         )
     }
-    
-    
+
     func getContentDimensions(
         width: Double?,
         height: Double?,
         dimensionScript: String?,
         completion: @escaping (CGSize) -> Void
     ) {
-        let frameSize = CGSizeMake(width ?? self.webView.frame.width, height ?? self.webView.frame.height)
-        if(dimensionScript == nil){
+        let frameSize = CGSizeMake(
+            width ?? self.webView.frame.width,
+            height ?? self.webView.frame.height
+        )
+        if dimensionScript == nil {
             completion(frameSize)
             return
         }
@@ -137,7 +165,6 @@ class HtmlWebView: NSObject, WKNavigationDelegate {
             }
         }
     }
-    
 
     // Function to add margins to an image
     private func addMargins(
@@ -184,20 +211,6 @@ class HtmlWebView: NSObject, WKNavigationDelegate {
                 WKWebsiteDataStore.default().fetchDataRecords(
                     ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()
                 ) { records in
-                    records.forEach { record in
-                        WKWebsiteDataStore.default().removeData(
-                            ofTypes: record.dataTypes,
-                            for: [record],
-                            completionHandler: {}
-                        )
-                    }
-                }
-            }
-        }
-        self.webView = nil
-    }
-}
- ) { records in
                     records.forEach { record in
                         WKWebsiteDataStore.default().removeData(
                             ofTypes: record.dataTypes,
