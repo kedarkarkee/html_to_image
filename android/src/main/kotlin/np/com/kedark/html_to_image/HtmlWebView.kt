@@ -10,17 +10,14 @@ import kotlin.math.absoluteValue
 import kotlin.math.ceil
 
 @SuppressLint("ViewConstructor")
-class HtmlWebView(context: Context, private val client: HtmlWebViewClient? = null) :
+class HtmlWebView(context: Context, private val client: HtmlWebViewClient, private val configuration: Map<*,*>) :
     WebView(context) {
 
     init {
-        if (client != null) {
             this.webViewClient = client
             this.layout(0, 0, widthPixels, heightPixels)
             this.loadDataWithBaseURL(null, client.content, "text/HTML", "UTF-8", null)
             configureWebViewSettings()
-            enableSlowWholeDocumentDraw()
-        }
     }
 
     val widthPixels: Int
@@ -32,14 +29,23 @@ class HtmlWebView(context: Context, private val client: HtmlWebViewClient? = nul
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebViewSettings() {
         this.settings.apply {
-            javaScriptEnabled = true
-            useWideViewPort = true
-            javaScriptCanOpenWindowsAutomatically = true
-            loadWithOverviewMode = true
-            setSupportZoom(true)
-            builtInZoomControls = true
-            displayZoomControls = false
-            layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
+            javaScriptEnabled = configuration["javascript_enabled"] as? Boolean ?: true
+            javaScriptCanOpenWindowsAutomatically = configuration["javascript_can_open_windows_automatically"] as? Boolean ?: false
+
+            val androidWebViewSettings = configuration["android_web_view_configuration"] as Map<*,*>
+            useWideViewPort = androidWebViewSettings["use_wide_view_port"] as? Boolean ?: true
+            loadWithOverviewMode = androidWebViewSettings["load_with_overview_mode"] as? Boolean ?: true
+            setSupportZoom(androidWebViewSettings["set_support_zoom"] as? Boolean ?: true)
+            builtInZoomControls = androidWebViewSettings["built_in_zoom_controls"] as? Boolean ?: true
+            displayZoomControls = androidWebViewSettings["display_zoom_controls"] as? Boolean ?: false
+            layoutAlgorithm = when (androidWebViewSettings["layout_algorithm"] as? String) {
+                "NORMAL" -> WebSettings.LayoutAlgorithm.NORMAL
+                "TEXT_AUTOSIZING" -> WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
+                else -> WebSettings.LayoutAlgorithm.NORMAL
+            }
+            if (androidWebViewSettings["enable_slow_whole_document_draw"] as? Boolean == true) {
+                enableSlowWholeDocumentDraw()
+            }
         }
     }
 
@@ -76,7 +82,7 @@ class HtmlWebView(context: Context, private val client: HtmlWebViewClient? = nul
 
     private fun toBitmap(offsetWidth: Double, offsetHeight: Double): Bitmap? {
         if (offsetHeight > 0 && offsetWidth > 0) {
-            val currentScale = client?.currentScale ?: 1.0f
+            val currentScale = client.currentScale
             val densityFactor = resources.displayMetrics.density
 
             val width = ceil(offsetWidth * currentScale * densityFactor).absoluteValue.toInt()

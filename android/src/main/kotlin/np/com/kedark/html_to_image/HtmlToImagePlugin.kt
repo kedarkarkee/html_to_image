@@ -1,7 +1,6 @@
 package np.com.kedark.html_to_image
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -21,7 +20,6 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
     private lateinit var channel: MethodChannel
-    private lateinit var activity: Activity
     private lateinit var context: Context
     private lateinit var webView: HtmlWebView
 
@@ -39,15 +37,15 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val delay = arguments["delay"] as Int? ?: 200
         val width = arguments["width"] as Int?
         val height = arguments["height"] as Int?
-
-
+        
         // Get margin parameters with default values
         val margins = (arguments["margins"] as List<*>).map { it as Int? ?: 0 }
 
         val dimensionScript = arguments["dimension_script"] as String?
 
+        val webViewConfiguration = arguments["web_view_configuration"] as Map<*,*>
+
         if (method == "convertToImage") {
-            // Use a larger width for layout to prevent clipping
             webView = HtmlWebView(
                 this.context,
                 HtmlWebViewClient(
@@ -59,6 +57,7 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                     dimensionScript,
                     result
                 ),
+                webViewConfiguration
             )
         } else {
             return result.notImplemented()
@@ -66,10 +65,6 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        activity = binding.activity
-        webView = HtmlWebView(activity.applicationContext)
-        webView.minimumHeight = 1
-        webView.minimumWidth = 1
     }
 
     override fun onDetachedFromActivityForConfigChanges() {

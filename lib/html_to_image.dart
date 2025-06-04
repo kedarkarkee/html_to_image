@@ -1,9 +1,11 @@
 import 'package:flutter/services.dart';
 import 'package:html_to_image/config.dart';
 
+import 'config/config.dart';
 import 'html_to_image_platform_interface.dart';
 
 export 'config.dart';
+export 'config/config.dart';
 
 class HtmlToImage {
   /// Converts the given HTML asset file to an image.
@@ -22,6 +24,7 @@ class HtmlToImage {
     ImageMargins margins = const ImageMargins(),
     HtmlDimensionStrategy dimensionStrategy =
         const HtmlDimensionStrategy.auto(),
+    WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
   }) async {
     final content = await rootBundle.loadString(asset);
     return HtmlToImagePlatform.instance.convertToImage(
@@ -29,6 +32,7 @@ class HtmlToImage {
       delay: delay,
       margins: margins,
       dimensionStrategy: dimensionStrategy,
+      webViewConfiguration: webViewConfiguration,
     );
   }
 
@@ -48,12 +52,14 @@ class HtmlToImage {
     ImageMargins margins = const ImageMargins(),
     HtmlDimensionStrategy dimensionStrategy =
         const HtmlDimensionStrategy.auto(),
+    WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
   }) {
     return HtmlToImagePlatform.instance.convertToImage(
       content: content,
       delay: delay,
       margins: margins,
       dimensionStrategy: dimensionStrategy,
+      webViewConfiguration: webViewConfiguration,
     );
   }
 
@@ -73,6 +79,7 @@ class HtmlToImage {
     ImageMargins margins = const ImageMargins(),
     HtmlDimensionStrategy dimensionStrategy =
         const HtmlDimensionStrategy.auto(),
+    WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
   }) async {
     try {
       return await HtmlToImagePlatform.instance.convertToImage(
@@ -80,6 +87,7 @@ class HtmlToImage {
         delay: delay,
         margins: margins,
         dimensionStrategy: dimensionStrategy,
+        webViewConfiguration: webViewConfiguration,
       );
     } catch (_) {
       return null;

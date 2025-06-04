@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:html_to_image/config.dart';
 
+import 'config/webview_configuration.dart';
 import 'html_to_image_platform_interface.dart';
 
 /// An implementation of [HtmlToImagePlatform] that uses method channels.
@@ -16,6 +17,7 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
     required Duration delay,
     required ImageMargins margins,
     required HtmlDimensionStrategy dimensionStrategy,
+    required WebViewConfiguration webViewConfiguration,
   }) async {
     final Map<String, dynamic> arguments = {
       'content': content,
@@ -29,6 +31,7 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
         margins.bottom,
       ],
       'dimension_script': dimensionStrategy.script,
+      'web_view_configuration': webViewConfiguration.toMap(),
     };
     try {
       final result = await (methodChannel.invokeMethod(

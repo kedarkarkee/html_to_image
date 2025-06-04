@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:html_to_image/config.dart';
+import 'package:html_to_image/html_to_image.dart';
 // import 'package:html_to_image/html_to_image.dart';
 import 'package:html_to_image/html_to_image_platform_interface.dart';
 import 'package:html_to_image/html_to_image_method_channel.dart';
@@ -16,6 +16,7 @@ class MockHtmlToImagePlatform
     required Duration delay,
     required ImageMargins margins,
     required HtmlDimensionStrategy dimensionStrategy,
+    required WebViewConfiguration webViewConfiguration,
   }) {
     throw UnimplementedError();
   }

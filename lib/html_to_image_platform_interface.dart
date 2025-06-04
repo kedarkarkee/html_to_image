@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:html_to_image/config.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'config/config.dart';
 import 'html_to_image_method_channel.dart';
 
 abstract class HtmlToImagePlatform extends PlatformInterface {
@@ -31,6 +32,7 @@ abstract class HtmlToImagePlatform extends PlatformInterface {
     required Duration delay,
     required ImageMargins margins,
     required HtmlDimensionStrategy dimensionStrategy,
+    required WebViewConfiguration webViewConfiguration,
   }) {
     throw UnimplementedError('contentToImage() has not been implemented.');
   }
