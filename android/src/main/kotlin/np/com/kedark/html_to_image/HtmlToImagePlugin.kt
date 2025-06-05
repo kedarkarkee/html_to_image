@@ -103,6 +103,5 @@ fun Bitmap.addMargins(
     val canvas = Canvas(newBitmap)
     canvas.drawColor(Color.WHITE) // Fill with white background
     canvas.drawBitmap(this, leftMargin.toFloat(), topMargin.toFloat(), null)
-
     return newBitmap
 }
