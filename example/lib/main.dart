@@ -20,6 +20,7 @@ class _MyAppState extends State<MyApp> {
   late final TextEditingController _controller;
   Uint8List? img;
   int currentStrategy = 0;
+  bool useDeviceScaleFactor = true;
 
   static const strategies = [
     (0, 'Auto'),
@@ -74,6 +75,7 @@ class _MyAppState extends State<MyApp> {
     final image = await HtmlToImage.tryConvertToImage(
       content: _controller.text,
       dimensionStrategy: _getStrategy(),
+      useDeviceScaleFactor: useDeviceScaleFactor,
     );
     setState(() {
       img = image;
@@ -84,7 +86,7 @@ class _MyAppState extends State<MyApp> {
     final image = await HtmlToImage.convertToImageFromAsset(
       asset: 'assets/invoice.html',
       dimensionStrategy: _getStrategy(),
-      useDeviceScaleFactor: false,
+      useDeviceScaleFactor: useDeviceScaleFactor,
     );
     setState(() {
       img = image;
@@ -134,7 +136,17 @@ class _MyAppState extends State<MyApp> {
                             )
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
+                      CheckboxListTile(
+                        value: useDeviceScaleFactor,
+                        title: const Text('Use Device Scale Factor'),
+                        onChanged: (v) {
+                          setState(() {
+                            useDeviceScaleFactor = v ?? useDeviceScaleFactor;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -151,7 +163,7 @@ class _MyAppState extends State<MyApp> {
                     ],
                   ),
                 )
-              : Image.memory(img!),
+              : _ImageView(image: img!),
           floatingActionButton: img != null
               ? FloatingActionButton(
                   onPressed: () {
@@ -166,5 +178,38 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
+  }
+}
+
+class _ImageView extends StatefulWidget {
+  final Uint8List image;
+
+  const _ImageView({required this.image});
+  @override
+  State<_ImageView> createState() => _ImageViewState();
+}
+
+class _ImageViewState extends State<_ImageView> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: decodeImageFromList(widget.image),
+        builder: (context, snapshot) {
+          final data = snapshot.data;
+          if (data == null) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return Column(
+            children: [
+              Expanded(child: Image.memory(widget.image)),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Image Size: ${data.width}x${data.height}'),
+              ),
+            ],
+          );
+        });
   }
 }
