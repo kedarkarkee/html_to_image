@@ -19,6 +19,15 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late final TextEditingController _controller;
   Uint8List? img;
+  int currentStrategy = 0;
+  bool useDeviceScaleFactor = true;
+
+  static const strategies = [
+    (0, 'Auto'),
+    (1, 'Constant'),
+    (2, 'Fit'),
+    (3, 'Full'),
+  ];
 
   static const _dummyContent = '''
   <html>
@@ -50,9 +59,23 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
   }
 
+  HtmlDimensionStrategy _getStrategy() {
+    if (currentStrategy == 0) return const HtmlDimensionStrategy.auto();
+    if (currentStrategy == 1) {
+      return const HtmlDimensionStrategy.withDimensions(
+        width: 300,
+        height: 800,
+      );
+    }
+    if (currentStrategy == 2) return const HtmlDimensionStrategy.fitContent();
+    return const HtmlDimensionStrategy.fullScroll();
+  }
+
   Future<void> convertToImage() async {
     final image = await HtmlToImage.tryConvertToImage(
       content: _controller.text,
+      dimensionStrategy: _getStrategy(),
+      useDeviceScaleFactor: useDeviceScaleFactor,
     );
     setState(() {
       img = image;
@@ -61,7 +84,9 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> convertToImageFromAsset() async {
     final image = await HtmlToImage.convertToImageFromAsset(
-      asset: 'assets/example.html',
+      asset: 'assets/invoice.html',
+      dimensionStrategy: _getStrategy(),
+      useDeviceScaleFactor: useDeviceScaleFactor,
     );
     setState(() {
       img = image;
@@ -93,6 +118,38 @@ class _MyAppState extends State<MyApp> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
+                          for (final (i, s) in strategies)
+                            Row(
+                              children: [
+                                Radio<int>(
+                                  value: i,
+                                  groupValue: currentStrategy,
+                                  onChanged: (v) {
+                                    if (v == null) return;
+                                    setState(() {
+                                      currentStrategy = v;
+                                    });
+                                  },
+                                ),
+                                Text(s)
+                              ],
+                            )
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      CheckboxListTile(
+                        value: useDeviceScaleFactor,
+                        title: const Text('Use Device Scale Factor'),
+                        onChanged: (v) {
+                          setState(() {
+                            useDeviceScaleFactor = v ?? useDeviceScaleFactor;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
                           ElevatedButton(
                             onPressed: convertToImage,
                             child: const Text('Convert to Image'),
@@ -106,7 +163,7 @@ class _MyAppState extends State<MyApp> {
                     ],
                   ),
                 )
-              : Image.memory(img!),
+              : _ImageView(image: img!),
           floatingActionButton: img != null
               ? FloatingActionButton(
                   onPressed: () {
@@ -121,5 +178,38 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
     );
+  }
+}
+
+class _ImageView extends StatefulWidget {
+  final Uint8List image;
+
+  const _ImageView({required this.image});
+  @override
+  State<_ImageView> createState() => _ImageViewState();
+}
+
+class _ImageViewState extends State<_ImageView> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: decodeImageFromList(widget.image),
+        builder: (context, snapshot) {
+          final data = snapshot.data;
+          if (data == null) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return Column(
+            children: [
+              Expanded(child: Image.memory(widget.image)),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Image Size: ${data.width}x${data.height}'),
+              ),
+            ],
+          );
+        });
   }
 }

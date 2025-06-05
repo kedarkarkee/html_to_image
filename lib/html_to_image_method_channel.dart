@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:html_to_image/config.dart';
 
+import 'config/config.dart';
 import 'html_to_image_platform_interface.dart';
 
 /// An implementation of [HtmlToImagePlatform] that uses method channels.
@@ -13,20 +13,26 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
   @override
   Future<Uint8List> convertToImage({
     required String content,
-    int? width,
-    Duration delay = const Duration(milliseconds: 200),
-    ImageMargins margins = const ImageMargins(),
+    required Duration delay,
+    required ImageMargins margins,
+    required bool useDeviceScaleFactor,
+    required HtmlDimensionStrategy dimensionStrategy,
+    required WebViewConfiguration webViewConfiguration,
   }) async {
     final Map<String, dynamic> arguments = {
       'content': content,
       'delay': delay.inMilliseconds,
-      'width': width,
+      'width': dimensionStrategy.width,
+      'height': dimensionStrategy.height,
       'margins': [
         margins.left,
         margins.top,
         margins.right,
         margins.bottom,
       ],
+      'use_device_scale_factor': useDeviceScaleFactor,
+      'dimension_script': dimensionStrategy.script,
+      'web_view_configuration': webViewConfiguration.toMap(),
     };
     try {
       final result = await (methodChannel.invokeMethod(
