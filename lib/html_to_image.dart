@@ -1,10 +1,8 @@
 import 'package:flutter/services.dart';
-import 'package:html_to_image/config.dart';
 
-import 'config/config.dart';
 import 'html_to_image_platform_interface.dart';
+import 'config/config.dart';
 
-export 'config.dart';
 export 'config/config.dart';
 
 class HtmlToImage {
