@@ -21,6 +21,7 @@ class HtmlToImage {
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
     bool useDeviceScaleFactor = true,
+    LayoutStrategy layoutStrategy = const LayoutStrategy.deviceDefault(),
     HtmlDimensionStrategy dimensionStrategy =
         const HtmlDimensionStrategy.auto(),
     WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
@@ -31,6 +32,7 @@ class HtmlToImage {
       delay: delay,
       margins: margins,
       useDeviceScaleFactor: useDeviceScaleFactor,
+      layoutStrategy: layoutStrategy,
       dimensionStrategy: dimensionStrategy,
       webViewConfiguration: webViewConfiguration,
     );
@@ -51,6 +53,7 @@ class HtmlToImage {
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
     bool useDeviceScaleFactor = true,
+    LayoutStrategy layoutStrategy = const LayoutStrategy.deviceDefault(),
     HtmlDimensionStrategy dimensionStrategy =
         const HtmlDimensionStrategy.auto(),
     WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
@@ -60,6 +63,7 @@ class HtmlToImage {
       delay: delay,
       margins: margins,
       useDeviceScaleFactor: useDeviceScaleFactor,
+      layoutStrategy: layoutStrategy,
       dimensionStrategy: dimensionStrategy,
       webViewConfiguration: webViewConfiguration,
     );
@@ -80,6 +84,7 @@ class HtmlToImage {
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
     bool useDeviceScaleFactor = true,
+    LayoutStrategy layoutStrategy = const LayoutStrategy.deviceDefault(),
     HtmlDimensionStrategy dimensionStrategy =
         const HtmlDimensionStrategy.auto(),
     WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
@@ -90,6 +95,7 @@ class HtmlToImage {
         delay: delay,
         margins: margins,
         useDeviceScaleFactor: useDeviceScaleFactor,
+        layoutStrategy: layoutStrategy,
         dimensionStrategy: dimensionStrategy,
         webViewConfiguration: webViewConfiguration,
       );

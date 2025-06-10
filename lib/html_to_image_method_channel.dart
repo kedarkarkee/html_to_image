@@ -16,12 +16,14 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
     required Duration delay,
     required ImageMargins margins,
     required bool useDeviceScaleFactor,
+    required LayoutStrategy layoutStrategy,
     required HtmlDimensionStrategy dimensionStrategy,
     required WebViewConfiguration webViewConfiguration,
   }) async {
     final Map<String, dynamic> arguments = {
       'content': content,
       'delay': delay.inMilliseconds,
+      'layout_strategy': layoutStrategy.toMap(),
       'width': dimensionStrategy.width,
       'height': dimensionStrategy.height,
       'margins': [

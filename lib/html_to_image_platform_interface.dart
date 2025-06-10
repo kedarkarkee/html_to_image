@@ -31,6 +31,7 @@ abstract class HtmlToImagePlatform extends PlatformInterface {
     required Duration delay,
     required ImageMargins margins,
     required bool useDeviceScaleFactor,
+    required LayoutStrategy layoutStrategy,
     required HtmlDimensionStrategy dimensionStrategy,
     required WebViewConfiguration webViewConfiguration,
   }) {
