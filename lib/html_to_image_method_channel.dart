@@ -17,15 +17,14 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
     required ImageMargins margins,
     required bool useDeviceScaleFactor,
     required LayoutStrategy layoutStrategy,
-    required HtmlDimensionStrategy dimensionStrategy,
+    required CaptureStrategy captureStrategy,
     required WebViewConfiguration webViewConfiguration,
   }) async {
     final Map<String, dynamic> arguments = {
       'content': content,
       'delay': delay.inMilliseconds,
       'layout_strategy': layoutStrategy.toMap(),
-      'width': dimensionStrategy.width,
-      'height': dimensionStrategy.height,
+      'capture_strategy': captureStrategy.toMap(),
       'margins': [
         margins.left,
         margins.top,
@@ -33,7 +32,6 @@ class MethodChannelHtmlToImage extends HtmlToImagePlatform {
         margins.bottom,
       ],
       'use_device_scale_factor': useDeviceScaleFactor,
-      'dimension_script': dimensionStrategy.script,
       'web_view_configuration': webViewConfiguration.toMap(),
     };
     try {

@@ -20,10 +20,9 @@ class HtmlToImage {
     required String asset,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
-    bool useDeviceScaleFactor = true,
+    bool useDeviceScaleFactor = false,
     LayoutStrategy layoutStrategy = const LayoutStrategy.deviceDefault(),
-    HtmlDimensionStrategy dimensionStrategy =
-        const HtmlDimensionStrategy.auto(),
+    CaptureStrategy captureStrategy = const CaptureStrategy.followLayout(),
     WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
   }) async {
     final content = await rootBundle.loadString(asset);
@@ -33,7 +32,7 @@ class HtmlToImage {
       margins: margins,
       useDeviceScaleFactor: useDeviceScaleFactor,
       layoutStrategy: layoutStrategy,
-      dimensionStrategy: dimensionStrategy,
+      captureStrategy: captureStrategy,
       webViewConfiguration: webViewConfiguration,
     );
   }
@@ -52,10 +51,9 @@ class HtmlToImage {
     required String content,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
-    bool useDeviceScaleFactor = true,
+    bool useDeviceScaleFactor = false,
     LayoutStrategy layoutStrategy = const LayoutStrategy.deviceDefault(),
-    HtmlDimensionStrategy dimensionStrategy =
-        const HtmlDimensionStrategy.auto(),
+    CaptureStrategy captureStrategy = const CaptureStrategy.followLayout(),
     WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
   }) {
     return HtmlToImagePlatform.instance.convertToImage(
@@ -64,7 +62,7 @@ class HtmlToImage {
       margins: margins,
       useDeviceScaleFactor: useDeviceScaleFactor,
       layoutStrategy: layoutStrategy,
-      dimensionStrategy: dimensionStrategy,
+      captureStrategy: captureStrategy,
       webViewConfiguration: webViewConfiguration,
     );
   }
@@ -83,10 +81,9 @@ class HtmlToImage {
     required String content,
     Duration delay = const Duration(milliseconds: 200),
     ImageMargins margins = const ImageMargins(),
-    bool useDeviceScaleFactor = true,
+    bool useDeviceScaleFactor = false,
     LayoutStrategy layoutStrategy = const LayoutStrategy.deviceDefault(),
-    HtmlDimensionStrategy dimensionStrategy =
-        const HtmlDimensionStrategy.auto(),
+    CaptureStrategy captureStrategy = const CaptureStrategy.followLayout(),
     WebViewConfiguration webViewConfiguration = const WebViewConfiguration(),
   }) async {
     try {
@@ -96,7 +93,7 @@ class HtmlToImage {
         margins: margins,
         useDeviceScaleFactor: useDeviceScaleFactor,
         layoutStrategy: layoutStrategy,
-        dimensionStrategy: dimensionStrategy,
+        captureStrategy: captureStrategy,
         webViewConfiguration: webViewConfiguration,
       );
     } catch (_) {

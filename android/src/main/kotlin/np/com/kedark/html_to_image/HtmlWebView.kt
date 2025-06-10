@@ -6,12 +6,16 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.webkit.WebSettings
 import android.webkit.WebView
+import org.json.JSONArray
 import kotlin.math.absoluteValue
 
 @SuppressLint("ViewConstructor")
 class HtmlWebView(
     context: Context,
     private val client: HtmlWebViewClient,
+    private val margins: List<Int>,
+    layoutStrategy: LayoutStrategy,
+    private val captureStrategy: CaptureStrategy,
     private val configuration: Map<*, *>,
     private val useDeviceScaleFactor: Boolean
 ) :
@@ -19,16 +23,10 @@ class HtmlWebView(
 
     init {
         this.webViewClient = client
-        this.layout(0, 0, widthPixels, heightPixels)
+        this.layout(0, 0, layoutStrategy.width, layoutStrategy.height)
         this.loadDataWithBaseURL(null, client.content, "text/HTML", "UTF-8", null)
         configureWebViewSettings()
     }
-
-    val widthPixels: Int
-        get() = this.resources.displayMetrics.widthPixels
-
-    val heightPixels: Int
-        get() = this.resources.displayMetrics.heightPixels
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebViewSettings() {
@@ -58,10 +56,32 @@ class HtmlWebView(
         }
     }
 
+    fun getContentDimensions(
+        callback: (Int, Int) -> Unit
+    ) {
+        if (captureStrategy.script == null) {
+            callback(captureStrategy.width ?: this.width, captureStrategy.height ?: this.height)
+            return
+        }
+        this.evaluateJavascript(
+            captureStrategy.script
+        ) {
+            val xy = JSONArray(it)
+            var contentWidth = (xy[0] as? Number)?.toInt() ?: 0
+            var contentHeight = (xy[1] as? Number)?.toInt() ?: 0
+            if (contentWidth == 0) {
+                contentWidth = this.width
+            }
+            if (contentHeight == 0) {
+                contentHeight = this.height
+            }
+            callback(contentWidth, contentHeight)
+        }
+    }
+
     fun captureImage(
-        width: Double,
-        height: Double,
-        margins: List<Int>
+        width: Int,
+        height: Int
     ): ByteArray? {
         // Creating the bitmap without margins
         val originalBitmap = toBitmap(
@@ -92,13 +112,12 @@ class HtmlWebView(
         return bytes
     }
 
-    private fun toBitmap(offsetWidth: Double, offsetHeight: Double): Bitmap? {
+    private fun toBitmap(offsetWidth: Int, offsetHeight: Int): Bitmap? {
 
         if (offsetHeight > 0 && offsetWidth > 0) {
             val currentScale = client.currentScale
-            val densityFactor = if(useDeviceScaleFactor) this.resources.displayMetrics.density else 1.0f
-            println("Current Scale: $currentScale")
-            println("Density Factor: $densityFactor")
+            val densityFactor =
+                if (useDeviceScaleFactor) this.resources.displayMetrics.density else 1.0f
             val width = (offsetWidth * densityFactor).absoluteValue.toInt()
             val height = (offsetHeight * densityFactor).absoluteValue.toInt()
             this.measure(
@@ -107,9 +126,9 @@ class HtmlWebView(
             )
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
-            canvas.scale(1/currentScale, 1/currentScale)
-            if(useDeviceScaleFactor){
-                canvas.scale(densityFactor,densityFactor)
+            canvas.scale(1 / currentScale, 1 / currentScale)
+            if (useDeviceScaleFactor) {
+                canvas.scale(densityFactor, densityFactor)
             }
             this.draw(canvas)
             return bitmap

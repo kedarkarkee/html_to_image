@@ -32,7 +32,7 @@ abstract class HtmlToImagePlatform extends PlatformInterface {
     required ImageMargins margins,
     required bool useDeviceScaleFactor,
     required LayoutStrategy layoutStrategy,
-    required HtmlDimensionStrategy dimensionStrategy,
+    required CaptureStrategy captureStrategy,
     required WebViewConfiguration webViewConfiguration,
   }) {
     throw UnimplementedError('contentToImage() has not been implemented.');

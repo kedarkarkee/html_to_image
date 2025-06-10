@@ -17,7 +17,7 @@ class MockHtmlToImagePlatform
     required ImageMargins margins,
     required bool useDeviceScaleFactor,
     required LayoutStrategy layoutStrategy,
-    required HtmlDimensionStrategy dimensionStrategy,
+    required CaptureStrategy captureStrategy,
     required WebViewConfiguration webViewConfiguration,
   }) {
     throw UnimplementedError();

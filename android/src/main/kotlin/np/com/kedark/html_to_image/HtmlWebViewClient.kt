@@ -11,16 +11,11 @@ import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 
 
 class HtmlWebViewClient(
-    private val width: Int?,
-    private val height: Int?,
     val content: String,
     private val delay: Int,
-    private val margins: List<Int>,
-    private val dimensionScript: String?,
     private val result: MethodChannel.Result
 ) : WebViewClient() {
     var currentScale: Float = 1.0f
@@ -54,14 +49,11 @@ class HtmlWebViewClient(
         scope.launch {
             // Perform WebView-to-image conversion on a background thread
             Handler(Looper.getMainLooper()).postDelayed({
-                getContentDimensions(
-                    view
-                ) { contentWidth, contentHeight ->
+                view.getContentDimensions { contentWidth, contentHeight ->
                     val bytes =
                         view.captureImage(
-                            contentWidth.toDouble(),
-                            contentHeight.toDouble(),
-                            margins
+                            contentWidth,
+                            contentHeight
                         )
                     if (bytes != null) {
                         result.success(bytes)
@@ -72,24 +64,6 @@ class HtmlWebViewClient(
                     }
                 }
             }, delay.toLong())
-        }
-    }
-
-    private fun getContentDimensions(
-        webView: HtmlWebView,
-        callback: (Number, Number) -> Unit
-    ) {
-        if (dimensionScript == null) {
-            callback(width ?: webView.widthPixels, height ?: webView.heightPixels)
-            return
-        }
-        webView.evaluateJavascript(
-            dimensionScript
-        ) {
-            val xy = JSONArray(it)
-            val contentWidth = (xy[0] as? Number)?.toDouble() ?: 0.0
-            val contentHeight = (xy[1] as? Number)?.toDouble() ?: 0.0
-            callback(contentWidth, contentHeight)
         }
     }
 }

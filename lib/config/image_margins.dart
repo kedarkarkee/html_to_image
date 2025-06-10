@@ -5,6 +5,7 @@ class ImageMargins {
   final int bottom;
   final int left;
 
+  /// Creates an instance of [ImageMargins].
   const ImageMargins({
     this.top = 0,
     this.right = 0,
@@ -12,6 +13,7 @@ class ImageMargins {
     this.left = 0,
   }) : assert(top >= 0 && right >= 0 && bottom >= 0 && left >= 0);
 
+  /// Creates an instance of [ImageMargins] with equal margins on symmetric sides.
   const ImageMargins.symmetric({
     int horizontal = 0,
     int vertical = 0,
@@ -21,6 +23,7 @@ class ImageMargins {
         top = vertical,
         bottom = vertical;
 
+  /// Creates an instance of [ImageMargins] with equal margins on all sides.
   const ImageMargins.all(int value)
       : assert(value >= 0),
         left = value,

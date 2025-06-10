@@ -1,8 +1,17 @@
+/// Configuration settings for webview
 class WebViewConfiguration {
+  /// Whether to enable JavaScript execution in the webview.
   final bool javaScriptEnabled;
+
+  /// Whether to allow JavaScript to open new windows automatically.
   final bool javaScriptCanOpenWindowsAutomatically;
+
+  /// Android specific webview configuration settings.
+  ///
+  /// Has no effect on iOS.
   final AndroidWebViewConfiguration androidWebViewConfiguration;
 
+  /// Creates an instance of [WebViewConfiguration] with default values.
   const WebViewConfiguration({
     this.javaScriptEnabled = true,
     this.javaScriptCanOpenWindowsAutomatically = false,
@@ -19,15 +28,32 @@ class WebViewConfiguration {
   }
 }
 
+/// Android specific webview configuration settings.
+///
+/// Has no effect on iOS.
 class AndroidWebViewConfiguration {
+  /// Whether to enable slow whole document drawing.
   final bool enableSlowWholeDocumentDraw;
+
+  /// Whether to use wide viewport.
   final bool useWideViewPort;
+
+  /// Whether to load with overview mode.
   final bool loadWithOverviewMode;
+
+  /// Whether to set support zoom.
   final bool setSupportZoom;
+
+  /// Whether to have built-in zoom controls.
   final bool builtInZoomControls;
+
+  /// Whether to display zoom controls.
   final bool displayZoomControls;
+
+  /// The layout algorithm.
   final AndroidWebViewLayoutAlgorithm layoutAlgorithm;
 
+  /// Creates an instance of [AndroidWebViewConfiguration] with default values.
   const AndroidWebViewConfiguration({
     this.enableSlowWholeDocumentDraw = true,
     this.useWideViewPort = true,
@@ -51,6 +77,7 @@ class AndroidWebViewConfiguration {
   }
 }
 
+// Android WebView Layout Algorithms
 enum AndroidWebViewLayoutAlgorithm {
   normal('NORMAL'),
   textAutoSizing('"TEXT_AUTOSIZING"');

@@ -1,0 +1,24 @@
+package np.com.kedark.html_to_image
+
+import android.util.DisplayMetrics
+
+class LayoutStrategy(
+    val width: Int,
+    val height: Int
+) {
+    companion object {
+        fun parseFromMap(map: Map<*, *>, displayMetrics: DisplayMetrics): LayoutStrategy {
+            val mm = map["mm"] as? Boolean
+                ?: false
+            val width =
+                (map["width"] as? Int?)?.let {
+                    if (mm) ((it / 25.4) * displayMetrics.densityDpi).toInt() else it
+                } ?: displayMetrics.widthPixels
+            val height = (map["height"] as? Int?)?.let {
+                if (mm) ((it / 25.4) * displayMetrics.densityDpi).toInt() else it
+            } ?: displayMetrics.heightPixels
+
+            return LayoutStrategy(width, height)
+        }
+    }
+}

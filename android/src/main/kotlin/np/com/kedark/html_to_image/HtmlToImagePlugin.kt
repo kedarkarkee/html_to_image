@@ -35,14 +35,18 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         val arguments = call.arguments as Map<*, *>
         val content = arguments["content"] as String
         val delay = arguments["delay"] as Int? ?: 200
-        val width = arguments["width"] as Int?
-        val height = arguments["height"] as Int?
 
+        val layoutStrategy = LayoutStrategy.parseFromMap(
+            arguments["layout_strategy"] as Map<*, *>,
+            context.resources.displayMetrics
+        )
+
+        val captureStrategy = CaptureStrategy.parseFromMap(
+            arguments["capture_strategy"] as Map<*, *>
+        )
         val margins = (arguments["margins"] as List<*>).map { it as Int? ?: 0 }
 
         val useDeviceScaleFactor = arguments["use_device_scale_factor"] as Boolean? ?: true
-
-        val dimensionScript = arguments["dimension_script"] as String?
 
         val webViewConfiguration = arguments["web_view_configuration"] as Map<*, *>
 
@@ -50,14 +54,13 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
             webView = HtmlWebView(
                 this.context,
                 HtmlWebViewClient(
-                    width,
-                    height,
                     content,
                     delay,
-                    margins,
-                    dimensionScript,
                     result
                 ),
+                margins,
+                layoutStrategy,
+                captureStrategy,
                 webViewConfiguration,
                 useDeviceScaleFactor
             )
