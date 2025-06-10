@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.webkit.WebSettings
 import android.webkit.WebView
-import kotlin.math.ceil
+import kotlin.math.absoluteValue
 
 @SuppressLint("ViewConstructor")
 class HtmlWebView(
@@ -93,48 +93,51 @@ class HtmlWebView(
     }
 
     private fun toBitmap(offsetWidth: Double, offsetHeight: Double): Bitmap? {
+
         if (offsetHeight > 0 && offsetWidth > 0) {
             val currentScale = client.currentScale
-            val densityFactor = resources.displayMetrics.density
-            val targetWidth = if (useDeviceScaleFactor) offsetWidth * densityFactor else offsetWidth
-            val targetHeight =
-                if (useDeviceScaleFactor) offsetHeight * densityFactor else offsetHeight
-
-            val bitmap = Bitmap.createBitmap(
-                ceil(targetWidth).toInt(),
-                ceil(targetHeight).toInt(),
-                Bitmap.Config.ARGB_8888
-            )
-            val canvas = Canvas(bitmap)
-
-            val newCanvasScale = (1.0f / currentScale)
-            canvas.scale(newCanvasScale, newCanvasScale)
-            if (useDeviceScaleFactor) {
-                canvas.scale(densityFactor, densityFactor)
-            }
+            val densityFactor = if(useDeviceScaleFactor) this.resources.displayMetrics.density else 1.0f
+            println("Current Scale: $currentScale")
+            println("Density Factor: $densityFactor")
+            val width = (offsetWidth * densityFactor).absoluteValue.toInt()
+            val height = (offsetHeight * densityFactor).absoluteValue.toInt()
             this.measure(
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
             )
-            this.layout(0, 0, bitmap.width, bitmap.height)
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            canvas.scale(1/currentScale, 1/currentScale)
+            if(useDeviceScaleFactor){
+                canvas.scale(densityFactor,densityFactor)
+            }
             this.draw(canvas)
             return bitmap
+//            val currentScale = client.currentScale
+//            val densityFactor = resources.displayMetrics.density
+//            val targetWidth = if (useDeviceScaleFactor) offsetWidth * densityFactor else offsetWidth
+//            val targetHeight =
+//                if (useDeviceScaleFactor) offsetHeight * densityFactor else offsetHeight
+//
+//            val bitmap = Bitmap.createBitmap(
+//                ceil(targetWidth).toInt(),
+//                ceil(targetHeight).toInt(),
+//                Bitmap.Config.ARGB_8888
+//            )
+//            val canvas = Canvas(bitmap)
 
-//            val width = ceil(offsetWidth * currentScale * densityFactor).absoluteValue.toInt()
-//            val height = ceil(offsetHeight * currentScale * densityFactor).absoluteValue.toInt()
+//            val newCanvasScale = (1.0f / currentScale)
+//            canvas.scale(newCanvasScale, newCanvasScale)
+//            if (useDeviceScaleFactor) {
+//                canvas.scale(densityFactor, densityFactor)
+//            }
 //            this.measure(
 //                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
 //                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
 //            )
-//            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-//            val canvas = Canvas(bitmap)
-//            canvas.scale(densityFactor, densityFactor)
+//            this.layout(0, 0, bitmap.width, bitmap.height)
 //            this.draw(canvas)
-//
-//
-//            val finalBitmap = Bitmap.createScaledBitmap(bitmap, targetWidth.toInt(), targetHeight.toInt(), true)
-//            bitmap.recycle()
-//            return finalBitmap
+//            return bitmap
         }
         return null
     }
