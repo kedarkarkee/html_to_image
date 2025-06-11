@@ -7,7 +7,7 @@ import android.graphics.Canvas
 import android.webkit.WebSettings
 import android.webkit.WebView
 import org.json.JSONArray
-import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
 class HtmlWebView(
@@ -118,8 +118,8 @@ class HtmlWebView(
             val currentScale = client.currentScale
             val densityFactor =
                 if (useDeviceScaleFactor) this.resources.displayMetrics.density else 1.0f
-            val width = (offsetWidth * densityFactor).absoluteValue.toInt()
-            val height = (offsetHeight * densityFactor).absoluteValue.toInt()
+            val width = (offsetWidth * densityFactor).roundToInt()
+            val height = (offsetHeight * densityFactor).roundToInt()
             this.measure(
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
