@@ -13,13 +13,16 @@ class LayoutStrategy(
                 ?: false
             val width =
                 (map["width"] as? Int?)?.let {
-                    if (mm) ((it / 25.4) * 72 * displayMetrics.density).roundToInt() else it
+                    if (mm) ((it / 25.4) * 72).roundToInt() else it
                 } ?: displayMetrics.widthPixels
             val height = (map["height"] as? Int?)?.let {
-                if (mm) ((it / 25.4) * 72 * displayMetrics.density).roundToInt() else it
+                if (mm) ((it / 25.4) * 72).roundToInt() else it
             } ?: displayMetrics.heightPixels
 
-            return LayoutStrategy(width, height)
+            return LayoutStrategy(
+                (width * displayMetrics.density).toInt(),
+                (height * displayMetrics.density).toInt()
+            )
         }
     }
 }

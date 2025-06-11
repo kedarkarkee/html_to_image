@@ -45,6 +45,7 @@ class HtmlWebViewClient(
     }
 
     private fun processWebView(view: HtmlWebView) {
+        view.measureAndLayout()
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             // Perform WebView-to-image conversion on a background thread
@@ -62,6 +63,7 @@ class HtmlWebViewClient(
                             "CONVERSION_FAILED", "Failed to convert HTML to image", null
                         )
                     }
+                    view.destroy()
                 }
             }, delay.toLong())
         }

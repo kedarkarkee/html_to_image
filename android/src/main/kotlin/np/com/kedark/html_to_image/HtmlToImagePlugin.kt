@@ -42,7 +42,8 @@ class HtmlToImagePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
         )
 
         val captureStrategy = CaptureStrategy.parseFromMap(
-            arguments["capture_strategy"] as Map<*, *>
+            arguments["capture_strategy"] as Map<*, *>,
+            context.resources.displayMetrics
         )
         val margins = (arguments["margins"] as List<*>).map { it as Int? ?: 0 }
 
