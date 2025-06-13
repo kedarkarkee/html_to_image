@@ -25,15 +25,17 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
         }
         let content = arguments!["content"] as? String
         let delay = arguments!["delay"] as? Int ?? 200
-        let width = arguments!["width"] as? Double
-        let height = arguments!["height"] as? Double
+        let layoutStrategy = LayoutStrategy.parseFromMap(
+            (arguments!["layout_strategy"] as? [String: Any])!
+        )
+        let captureStrategy = CaptureStrategy.parseFromMap(
+            (arguments!["capture_strategy"] as? [String: Any])!
+        )
 
         let margins = arguments!["margins"] as? [Int]
 
         let useDeviceScaleFactor =
             arguments!["use_device_scale_factor"] as? Bool ?? true
-
-        let dimensionScript = arguments!["dimension_script"] as? String
 
         let webViewConfiguration =
             arguments!["web_view_configuration"] as? [String: Any]
@@ -42,12 +44,11 @@ public class HtmlToImagePlugin: NSObject, FlutterPlugin {
         case "convertToImage":
             let htmlWebView = HtmlWebView(
                 content: content!,
-                width: width,
-                height: height,
+                layoutStrategy: layoutStrategy,
+                captureStrategy: captureStrategy,
                 margins: margins!,
                 useDeviceScaleFactor: useDeviceScaleFactor,
                 delay: delay,
-                dimensionScript: dimensionScript,
                 webViewConfiguration: webViewConfiguration!,
                 completion: { imageData in
                     if let imageData = imageData {

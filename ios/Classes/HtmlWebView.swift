@@ -5,34 +5,31 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
     private var webView: WKWebView!
     private var urlObservation: NSKeyValueObservation?
     private var content: String
-    private var width: Double?
-    private var height: Double?
+    private var layoutStrategy: LayoutStrategy
+    private var captureStrategy: CaptureStrategy
     private var margins: [Int]
     private var useDeviceScaleFactor: Bool
     private var delay: Int
-    private var dimensionScript: String?
     private var webViewConfiguration: [String: Any]
     private var currentScale: CGFloat = 1.0
     private var completion: (Data?) -> Void
 
     init(
         content: String,
-        width: Double?,
-        height: Double?,
+        layoutStrategy: LayoutStrategy,
+        captureStrategy: CaptureStrategy,
         margins: [Int],
         useDeviceScaleFactor: Bool,
         delay: Int,
-        dimensionScript: String?,
         webViewConfiguration: [String: Any],
         completion: @escaping (Data?) -> Void
     ) {
         self.content = content
-        self.width = width
-        self.height = height
+        self.layoutStrategy = layoutStrategy
+        self.captureStrategy = captureStrategy
         self.margins = margins
         self.useDeviceScaleFactor = useDeviceScaleFactor
         self.delay = delay
-        self.dimensionScript = dimensionScript
         self.webViewConfiguration = webViewConfiguration
         self.completion = completion
     }
@@ -58,8 +55,8 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
             frame: CGRect(
                 x: 0,
                 y: 0,
-                width: UIScreen.main.bounds.size.width,
-                height: UIScreen.main.bounds.size.height
+                width: layoutStrategy.width,
+                height: layoutStrategy.height
             ),
             configuration: getConfig()
         )
@@ -82,71 +79,33 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
                             .contentInsetAdjustmentBehavior =
                             UIScrollView.ContentInsetAdjustmentBehavior
                             .never
-                        let configuration = WKSnapshotConfiguration()
-                        self.getContentDimensions(
-                            width: self.width,
-                            height: self.height,
-                            dimensionScript: self.dimensionScript,
-                        ) {
+                        self.getContentDimensions {
                             (size) in
-                            let scaledWidth = size.width * self.currentScale
-                            let scaledHeight = size.height * self.currentScale
+                            let captureWidth =
+                                size.width < 0
+                                ? self.webView.scrollView.contentSize.width
+                                : size.width
+                            let captureHeight =
+                                size.height < 0
+                                ? self.webView.scrollView.contentSize.height
+                                : size.height
+
+                            let scaledWidth = captureWidth * self.currentScale
+                            let scaledHeight = captureHeight * self.currentScale
+
+                            let targetWidth =
+                                self.useDeviceScaleFactor
+                                ? captureWidth
+                                : captureWidth / UIScreen.main.scale
+
+                            let configuration = WKSnapshotConfiguration()
                             configuration.rect = CGRect(
                                 origin: .zero,
                                 size: CGSizeMake(scaledWidth, scaledHeight)
                             )
-                            NSLog("Scaled Width is %f", scaledWidth)
-                            NSLog("Size Width is %f", size.width)
-                            NSLog("Current Scale is %f", self.currentScale)
-
-                            let targetWidth =
-                                self.useDeviceScaleFactor
-                                ? size.width : size.width / UIScreen.main.scale
-
                             configuration.snapshotWidth =
                                 targetWidth as NSNumber
-                            self.webView
-                                .snapshotView(afterScreenUpdates: true)
-                            self.webView
-                                .takeSnapshot(with: configuration) {
-                                    (originalImage, error) in
-                                    guard let image = originalImage else {
-                                        self.completion(Data())
-                                        self.dispose()
-                                        return
-                                    }
-
-                                    // Apply margins if any are non-zero
-                                    let finalImage: UIImage
-                                    let marginLeft = self.margins[0]
-                                    let marginTop = self.margins[1]
-                                    let marginRight = self.margins[2]
-                                    let marginBottom = self.margins[3]
-                                    if marginLeft > 0 || marginTop > 0
-                                        || marginRight > 0 || marginBottom > 0
-                                    {
-                                        finalImage = self.addMargins(
-                                            to: image,
-                                            left: marginLeft,
-                                            top: marginTop,
-                                            right: marginRight,
-                                            bottom: marginBottom
-                                        )
-                                    } else {
-                                        finalImage = image
-                                    }
-                                    guard
-                                        let data = finalImage.pngData()
-                                    else {
-                                        self.completion(Data())
-                                        self.dispose()
-                                        return
-                                    }
-                                    self.completion(data)
-
-                                    self.dispose()
-
-                                }
+                            self.captureImage(config: configuration)
                         }
                     } else {
                         self.completion(Data())
@@ -158,24 +117,72 @@ class HtmlWebView: NSObject, WKNavigationDelegate, UIScrollViewDelegate {
         )
     }
 
+    private func captureImage(config: WKSnapshotConfiguration) {
+        self.webView
+            .snapshotView(afterScreenUpdates: true)
+        self.webView.takeSnapshot(with: config) {
+            (originalImage, error) in
+            guard let image = originalImage else {
+                self.completion(Data())
+                self.dispose()
+                return
+            }
+            // Apply margins if any are non-zero
+            let finalImage: UIImage
+            let marginLeft = self.margins[0]
+            let marginTop = self.margins[1]
+            let marginRight = self.margins[2]
+            let marginBottom = self.margins[3]
+            if marginLeft > 0 || marginTop > 0
+                || marginRight > 0 || marginBottom > 0
+            {
+                finalImage = self.addMargins(
+                    to: image,
+                    left: marginLeft,
+                    top: marginTop,
+                    right: marginRight,
+                    bottom: marginBottom
+                )
+            } else {
+                finalImage = image
+            }
+            guard let data = finalImage.pngData() else {
+                self.completion(Data())
+                self.dispose()
+                return
+            }
+            self.completion(data)
+            self.dispose()
+        }
+    }
+
     func getContentDimensions(
-        width: Double?,
-        height: Double?,
-        dimensionScript: String?,
         completion: @escaping (CGSize) -> Void
     ) {
         let frameSize = CGSizeMake(
-            width ?? self.webView.frame.width,
-            height ?? self.webView.frame.height
+            CGFloat(
+                self.captureStrategy.width ?? Int(self.webView.frame.width)
+            ),
+            CGFloat(
+                self.captureStrategy.height ?? Int(self.webView.frame.height)
+            )
         )
-        if dimensionScript == nil {
+        if self.captureStrategy.script == nil {
             completion(frameSize)
             return
         }
-        self.webView.evaluateJavaScript(dimensionScript!) { result, error in
+        self.webView.evaluateJavaScript(self.captureStrategy.script!) {
+            result,
+            error in
             if let array = result as? [Double], array.count == 2 {
-                let contentWidth = array[0]
-                let contentHeight = array[1]
+                var contentWidth = array[0]
+                var contentHeight = array[1]
+                if contentWidth == 0 {
+                    contentWidth = frameSize.width
+                }
+                if contentHeight == 0 {
+                    contentHeight = frameSize.height
+                }
                 completion(CGSizeMake(contentWidth, contentHeight))
             } else {
                 completion(frameSize)
