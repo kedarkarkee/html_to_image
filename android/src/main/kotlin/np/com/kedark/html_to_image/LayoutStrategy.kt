@@ -1,7 +1,6 @@
 package np.com.kedark.html_to_image
 
 import android.util.DisplayMetrics
-import kotlin.math.roundToInt
 
 class LayoutStrategy(
     val width: Int,
@@ -9,15 +8,9 @@ class LayoutStrategy(
 ) {
     companion object {
         fun parseFromMap(map: Map<*, *>, displayMetrics: DisplayMetrics): LayoutStrategy {
-            val mm = map["mm"] as? Boolean
-                ?: false
             val width =
-                (map["width"] as? Int?)?.let {
-                    if (mm) ((it / 25.4) * 72).roundToInt() else it
-                } ?: displayMetrics.widthPixels
-            val height = (map["height"] as? Int?)?.let {
-                if (mm) ((it / 25.4) * 72).roundToInt() else it
-            } ?: displayMetrics.heightPixels
+                map["width"] as? Int? ?: displayMetrics.widthPixels
+            val height = map["height"] as? Int? ?: displayMetrics.heightPixels
 
             return LayoutStrategy(
                 (width * displayMetrics.density).toInt(),

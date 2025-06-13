@@ -13,6 +13,8 @@ class CaptureStrategy {
   /// Uses the provided `width` and `height` as the output dimensions
   ///
   /// Omitting any will fallback to dimensions of WebView Layout
+  ///
+  /// Passing negative will measure the dimensions and calculate accordingly
   const CaptureStrategy.withDimensions({
     this.width,
     this.height,

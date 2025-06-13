@@ -71,15 +71,15 @@ class HtmlWebView(
             val xy = JSONArray(it)
             var contentWidth = (xy[0] as? Number)?.toInt() ?: 0
             var contentHeight = (xy[1] as? Number)?.toInt() ?: 0
-            if (contentWidth == 0) {
-                contentWidth = measuredWidth
+            contentWidth = if (contentWidth == 0) {
+                measuredWidth
             } else {
-                contentWidth = (contentWidth * this.resources.displayMetrics.density).toInt()
+                (contentWidth * this.resources.displayMetrics.density).toInt()
             }
-            if (contentHeight == 0) {
-                contentHeight = measuredHeight
+            contentHeight = if (contentHeight == 0) {
+                measuredHeight
             } else {
-                contentHeight = (contentHeight * this.resources.displayMetrics.density).toInt()
+                (contentHeight * this.resources.displayMetrics.density).toInt()
             }
             callback(contentWidth, contentHeight)
         }
@@ -127,25 +127,47 @@ class HtmlWebView(
     }
 
     private fun toBitmap(offsetWidth: Int, offsetHeight: Int): Bitmap? {
-        if (offsetHeight > 0 && offsetWidth > 0) {
-            val currentScale = client.currentScale
-            val density = this.resources.displayMetrics.density
-            val targetWidth = if (useDeviceScaleFactor) offsetWidth else offsetWidth / density
-            val targetHeight = if (useDeviceScaleFactor) offsetHeight else offsetHeight / density
-            val bitmap = Bitmap.createBitmap(
-                targetWidth.toInt(),
-                targetHeight.toInt(),
-                Bitmap.Config.ARGB_8888
-            )
-            val canvas = Canvas(bitmap)
-            canvas.scale(1 / currentScale, 1 / currentScale)
-            if (useDeviceScaleFactor) {
-                canvas.scale(density, density)
-            }
-            this.draw(canvas)
-            return bitmap
+        val currentScale = client.currentScale
+        val density = this.resources.displayMetrics.density
+        val targetWidth =
+            if (useDeviceScaleFactor) offsetWidth else (offsetWidth / density).roundToInt()
+        val targetHeight =
+            if (useDeviceScaleFactor) offsetHeight else (offsetHeight / density).roundToInt()
+        this.measure(
+            if (offsetWidth < 0) MeasureSpec.makeMeasureSpec(
+                0,
+                MeasureSpec.UNSPECIFIED
+            ) else MeasureSpec.makeMeasureSpec(targetWidth, MeasureSpec.EXACTLY),
+            if (offsetHeight < 0) MeasureSpec.makeMeasureSpec(
+                0,
+                MeasureSpec.UNSPECIFIED
+            ) else MeasureSpec.makeMeasureSpec(targetHeight, MeasureSpec.EXACTLY)
+        )
+        val finalMeasuredWidth =
+            if (useDeviceScaleFactor) measuredWidth else (measuredWidth / density).toInt()
+        val finalTargetWidth = if (offsetWidth < 0) finalMeasuredWidth else targetWidth
+
+        val finalMeasuredHeight =
+            if (useDeviceScaleFactor) measuredHeight else (measuredHeight / density).toInt()
+        val finalTargetHeight = if (offsetHeight < 0) finalMeasuredHeight else targetHeight
+
+        if (finalTargetWidth <= 0 || finalTargetHeight <= 0) {
+            return null
         }
-        return null
+        this.layout(0, 0, finalTargetWidth, finalTargetHeight)
+        val bitmap = Bitmap.createBitmap(
+            finalTargetWidth,
+            finalTargetHeight,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(bitmap)
+        canvas.scale(1 / currentScale, 1 / currentScale)
+        if (useDeviceScaleFactor) {
+            canvas.scale(density, density)
+        }
+        this.draw(canvas)
+        return bitmap
+
     }
 
 }
