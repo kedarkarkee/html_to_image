@@ -1,6 +1,15 @@
 # HTML to Image
 
+[![pub package](https://img.shields.io/pub/v/html_to_image.svg)](https://pub.dartlang.org/packages/html_to_image)
+
 A fully customizable plugin to convert HTML file to image on Android and iOS using WebView.
+
+# Features
+- Convert HTML content to PNG Image
+- Support for all standard paper sizes (A0-A10)
+- Custom document sizes with user-defined dimensions
+- Customizable page margins
+- Support for both Android and iOS
 
 # Requirements
 - Android: Minimum SDK Version 21
