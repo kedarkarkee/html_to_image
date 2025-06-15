@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:html_to_image/config.dart';
+import 'package:html_to_image/html_to_image.dart';
 // import 'package:html_to_image/html_to_image.dart';
 import 'package:html_to_image/html_to_image_platform_interface.dart';
 import 'package:html_to_image/html_to_image_method_channel.dart';
@@ -13,9 +13,12 @@ class MockHtmlToImagePlatform
   @override
   Future<Uint8List> convertToImage({
     required String content,
-    int? width,
-    Duration delay = const Duration(milliseconds: 200),
-    ImageMargins margins = const ImageMargins(),
+    required Duration delay,
+    required ImageMargins margins,
+    required bool useDeviceScaleFactor,
+    required LayoutStrategy layoutStrategy,
+    required CaptureStrategy captureStrategy,
+    required WebViewConfiguration webViewConfiguration,
   }) {
     throw UnimplementedError();
   }

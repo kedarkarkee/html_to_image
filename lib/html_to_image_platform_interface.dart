@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:html_to_image/config.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'config/config.dart';
 import 'html_to_image_method_channel.dart';
 
 abstract class HtmlToImagePlatform extends PlatformInterface {
@@ -28,9 +28,12 @@ abstract class HtmlToImagePlatform extends PlatformInterface {
 
   Future<Uint8List> convertToImage({
     required String content,
-    int? width,
-    Duration delay = const Duration(milliseconds: 200),
-    ImageMargins margins = const ImageMargins(),
+    required Duration delay,
+    required ImageMargins margins,
+    required bool useDeviceScaleFactor,
+    required LayoutStrategy layoutStrategy,
+    required CaptureStrategy captureStrategy,
+    required WebViewConfiguration webViewConfiguration,
   }) {
     throw UnimplementedError('contentToImage() has not been implemented.');
   }
