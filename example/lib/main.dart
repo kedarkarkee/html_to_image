@@ -19,30 +19,105 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late final TextEditingController _controller;
   Uint8List? img;
-  int currentStrategy = 0;
-  bool useDeviceScaleFactor = true;
+  int currentLayoutStrategy = 0;
+  int currentCaptureStrategy = 0;
+  bool useDeviceScaleFactor = false;
 
-  static const strategies = [
-    (0, 'Auto'),
-    (1, 'Constant'),
-    (2, 'Fit'),
-    (3, 'Full'),
+  static const layoutStrategies = [
+    (0, 'Device Default'),
+    (1, 'Dimensions (400 x 600)'),
+    (2, 'A4 (210mm x 297mm)'),
+    (3, 't80 (Thermal 80mm)'),
   ];
 
+  LayoutStrategy _getLayoutStrategy() {
+    if (currentLayoutStrategy == 0) return const LayoutStrategy.deviceDefault();
+    if (currentLayoutStrategy == 1) {
+      return const LayoutStrategy.withDimensions(
+        width: 400,
+        height: 600,
+      );
+    }
+    if (currentLayoutStrategy == 2) {
+      return const LayoutStrategy.a4();
+    }
+    return const LayoutStrategy.a5();
+  }
+
+  static const captureStrategies = [
+    (0, 'Follow Layout'),
+    (1, 'Dimensions (300 x 300)'),
+    (2, 'Unbounded width and height'),
+    (3, 'Custom JS (Fit Content)'),
+    (4, 'Custom JS (Full Scroll)'),
+  ];
+
+  CaptureStrategy _getCaptureStrategy() {
+    if (currentCaptureStrategy == 0) {
+      return const CaptureStrategy.followLayout();
+    }
+    if (currentCaptureStrategy == 1) {
+      return const CaptureStrategy.withDimensions(
+        width: 300,
+        height: 300,
+      );
+    }
+    if (currentCaptureStrategy == 2) {
+      return const CaptureStrategy.unbounded();
+    }
+    if (currentCaptureStrategy == 3) return const CaptureStrategy.fitContent();
+    return const CaptureStrategy.fullScroll();
+  }
+
   static const _dummyContent = '''
-  <html>
+  <!DOCTYPE html>
+  <html lang="en">
   <head>
-  <title>
-  Example of Paragraph tag
-  </title>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>300 List Items</title>
+      <style>
+          body {
+              font-family: Arial, sans-serif;
+              margin: 20px;
+          }
+          #itemListContainer {
+              border: 1px solid #ccc;
+              padding: 10px;
+          }
+          ul {
+              list-style: none;
+              padding: 0;
+              margin: 0;
+          }
+          li {
+              padding: 8px 0;
+              border-bottom: 1px dashed #eee;
+          }
+          li:last-child {
+              border-bottom: none;
+          }
+      </style>
   </head>
   <body>
-  <p> <!-- It is a Paragraph tag for creating the paragraph -->
-  <b> HTML </b> stands for <i> <u> Hyper Text Markup Language. </u> </i> It is used to create a web pages and applications. This language
-  is easily understandable by the user and also be modifiable. It is actually a Markup language, hence it provides a flexible way for designing the
-  web pages along with the text.
-  <img src="https://picsum.photos/200/300" />
-  <br />
+      <h1>List of 300 Items</h1>
+      <div id="itemListContainer">
+          <ul id="myList">
+              </ul>
+      </div>
+
+      <script>
+          document.addEventListener('DOMContentLoaded', function() {
+              const list = document.getElementById('myList');
+              const numberOfItems = 300;
+
+              for (let i = 1; i <= numberOfItems; i++) {
+                  const listItem = document.createElement('li');
+                  listItem.textContent = `List Item Number \${i}`;
+                  list.appendChild(listItem);
+              }
+          });
+      </script>
   </body>
   </html>
   ''';
@@ -59,22 +134,11 @@ class _MyAppState extends State<MyApp> {
     super.dispose();
   }
 
-  HtmlDimensionStrategy _getStrategy() {
-    if (currentStrategy == 0) return const HtmlDimensionStrategy.auto();
-    if (currentStrategy == 1) {
-      return const HtmlDimensionStrategy.withDimensions(
-        width: 300,
-        height: 800,
-      );
-    }
-    if (currentStrategy == 2) return const HtmlDimensionStrategy.fitContent();
-    return const HtmlDimensionStrategy.fullScroll();
-  }
-
   Future<void> convertToImage() async {
     final image = await HtmlToImage.tryConvertToImage(
       content: _controller.text,
-      dimensionStrategy: _getStrategy(),
+      layoutStrategy: _getLayoutStrategy(),
+      captureStrategy: _getCaptureStrategy(),
       useDeviceScaleFactor: useDeviceScaleFactor,
     );
     setState(() {
@@ -85,7 +149,8 @@ class _MyAppState extends State<MyApp> {
   Future<void> convertToImageFromAsset() async {
     final image = await HtmlToImage.convertToImageFromAsset(
       asset: 'assets/invoice.html',
-      dimensionStrategy: _getStrategy(),
+      layoutStrategy: _getLayoutStrategy(),
+      captureStrategy: _getCaptureStrategy(),
       useDeviceScaleFactor: useDeviceScaleFactor,
     );
     setState(() {
@@ -115,25 +180,58 @@ class _MyAppState extends State<MyApp> {
                           maxLines: 100,
                         ),
                       ),
+                      const SizedBox(height: 16),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          for (final (i, s) in strategies)
-                            Row(
-                              children: [
-                                Radio<int>(
-                                  value: i,
-                                  groupValue: currentStrategy,
-                                  onChanged: (v) {
-                                    if (v == null) return;
-                                    setState(() {
-                                      currentStrategy = v;
-                                    });
-                                  },
-                                ),
-                                Text(s)
-                              ],
-                            )
+                          const Text('Layout Strategy:'),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: DropdownButton(
+                                value: currentLayoutStrategy,
+                                items: [
+                                  for (final (i, s) in layoutStrategies)
+                                    DropdownMenuItem(
+                                      value: i,
+                                      child: Text(s),
+                                    )
+                                ],
+                                onChanged: (v) {
+                                  if (v == null) return;
+                                  setState(() {
+                                    currentLayoutStrategy = v;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          const Text('Capture Strategy:'),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: DropdownButton(
+                                value: currentCaptureStrategy,
+                                items: [
+                                  for (final (i, s) in captureStrategies)
+                                    DropdownMenuItem(
+                                      value: i,
+                                      child: Text(s),
+                                    )
+                                ],
+                                onChanged: (v) {
+                                  if (v == null) return;
+                                  setState(() {
+                                    currentCaptureStrategy = v;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),

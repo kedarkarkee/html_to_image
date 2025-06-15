@@ -20,6 +20,12 @@ class CaptureStrategy {
     this.height,
   }) : script = null;
 
+  /// Captures the entire content unbounded
+  const CaptureStrategy.unbounded()
+      : width = -1,
+        height = -1,
+        script = null;
+
   /// Uses a JavaScript to calculate the dimensions
   /// required to fit content width and height
   const CaptureStrategy.fitContent()
