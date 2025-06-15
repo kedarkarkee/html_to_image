@@ -10,12 +10,7 @@ class HtmlToImage {
   ///
   /// [asset] Asset path to HTML file
   ///
-  /// [delay] The delay before taking the snapshot.
-  /// This is useful when the content has animations, images or other dynamic content.
-  ///
-  /// [width] Required width of the image.
-  ///
-  /// [margins] Represents the margins for an output image.
+  /// {@macro html_to_image}
   static Future<Uint8List> convertToImageFromAsset({
     required String asset,
     Duration delay = const Duration(milliseconds: 200),
@@ -41,12 +36,23 @@ class HtmlToImage {
   ///
   /// [content] Plain HTML content
   ///
+  /// {@template html_to_image}
   /// [delay] The delay before taking the snapshot.
   /// This is useful when the content has animations, images or other dynamic content.
   ///
-  /// [width] Required width of the image.
-  ///
   /// [margins] Represents the margins for an output image.
+  ///
+  /// [useDeviceScaleFactor] Whether to use the device's scale factor when calculating the image size.
+  ///
+  /// Note that the image on iOS is already scaled by default and enabling this will further scale it by device scale factor
+  ///
+  /// [layoutStrategy] Defines strategy on how to layout the content on WebView
+  ///
+  /// [captureStrategy] Defines strategy on how to capture the content that already laid out on WebView
+  ///
+  /// [webViewConfiguration] Defines configuration for WebView
+  ///
+  /// {@endtemplate}
   static Future<Uint8List> convertToImage({
     required String content,
     Duration delay = const Duration(milliseconds: 200),
@@ -71,12 +77,7 @@ class HtmlToImage {
   ///
   /// [content] Plain HTML content
   ///
-  /// [delay] The delay before taking the snapshot.
-  /// This is useful when the content has animations, images or other dynamic content.
-  ///
-  /// [width] Required width of the image.
-  ///
-  /// [margins] Represents the margins for an output image.
+  /// {@macro html_to_image}
   static Future<Uint8List?> tryConvertToImage({
     required String content,
     Duration delay = const Duration(milliseconds: 200),
