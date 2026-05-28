@@ -14,6 +14,7 @@
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		8BA3A67CBFAE106F72AC049D /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78BEC7B588362B0E43AB4AF9 /* Pods_RunnerTests.framework */; };
 		90FF0884C63E4E6197F8BBD7 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0C7C0B8EE2A723778362938 /* Pods_Runner.framework */; };
+		972565042FC82C70007C1076 /* html-to-image in Frameworks */ = {isa = PBXBuildFile; productRef = 972565032FC82C70007C1076 /* html-to-image */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
@@ -78,6 +79,7 @@
 			files = (
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
 				90FF0884C63E4E6197F8BBD7 /* Pods_Runner.framework in Frameworks */,
+				972565042FC82C70007C1076 /* html-to-image in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -169,7 +171,6 @@
 				826EFAB7B5B6AEFA245E0D99 /* Pods-RunnerTests.release.xcconfig */,
 				504AE13D96A75D9B571DBBDF /* Pods-RunnerTests.profile.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -214,6 +215,7 @@
 			name = Runner;
 			packageProductDependencies = (
 				78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */,
+				972565032FC82C70007C1076 /* html-to-image */,
 			);
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
@@ -249,7 +251,8 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+				972565022FC82C70007C1076 /* XCLocalSwiftPackageReference "../../ios/html_to_image" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -724,9 +727,13 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
+		};
+		972565022FC82C70007C1076 /* XCLocalSwiftPackageReference "../../ios/html_to_image" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../ios/html_to_image;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -734,6 +741,10 @@
 		78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FlutterGeneratedPluginSwiftPackage;
+		};
+		972565032FC82C70007C1076 /* html-to-image */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = "html-to-image";
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
