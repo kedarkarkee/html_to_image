@@ -211,6 +211,7 @@ class _MyAppState extends State<MyApp> {
                       ),
                       const SizedBox(height: 16),
                       Row(
+                        spacing: 8,
                         children: [
                           const Flexible(child: Text('Capture Strategy:')),
                           Align(
