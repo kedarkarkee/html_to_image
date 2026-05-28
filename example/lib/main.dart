@@ -140,6 +140,7 @@ class _MyAppState extends State<MyApp> {
       layoutStrategy: _getLayoutStrategy(),
       captureStrategy: _getCaptureStrategy(),
       useDeviceScaleFactor: useDeviceScaleFactor,
+      margins: const ImageMargins.all(20),
     );
     setState(() {
       img = image;
@@ -152,6 +153,7 @@ class _MyAppState extends State<MyApp> {
       layoutStrategy: _getLayoutStrategy(),
       captureStrategy: _getCaptureStrategy(),
       useDeviceScaleFactor: useDeviceScaleFactor,
+      margins: const ImageMargins.all(20),
     );
     setState(() {
       img = image;
@@ -210,26 +212,24 @@ class _MyAppState extends State<MyApp> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          const Text('Capture Strategy:'),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: DropdownButton(
-                                value: currentCaptureStrategy,
-                                items: [
-                                  for (final (i, s) in captureStrategies)
-                                    DropdownMenuItem(
-                                      value: i,
-                                      child: Text(s),
-                                    )
-                                ],
-                                onChanged: (v) {
-                                  if (v == null) return;
-                                  setState(() {
-                                    currentCaptureStrategy = v;
-                                  });
-                                },
-                              ),
+                          const Flexible(child: Text('Capture Strategy:')),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: DropdownButton(
+                              value: currentCaptureStrategy,
+                              items: [
+                                for (final (i, s) in captureStrategies)
+                                  DropdownMenuItem(
+                                    value: i,
+                                    child: Text(s),
+                                  )
+                              ],
+                              onChanged: (v) {
+                                if (v == null) return;
+                                setState(() {
+                                  currentCaptureStrategy = v;
+                                });
+                              },
                             ),
                           ),
                         ],
