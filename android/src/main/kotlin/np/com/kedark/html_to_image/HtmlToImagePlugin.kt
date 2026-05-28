@@ -101,7 +101,7 @@ fun Bitmap.addMargins(
     // Create a new bitmap with the margins
     val newWidth = width + leftMargin + rightMargin
     val newHeight = height + topMargin + bottomMargin
-    val newBitmap = Bitmap.createBitmap(newWidth, newHeight, config)
+    val newBitmap = Bitmap.createBitmap(newWidth, newHeight, config ?: Bitmap.Config.ARGB_8888)
 
     // Draw the original bitmap onto the new one with margins
     val canvas = Canvas(newBitmap)
